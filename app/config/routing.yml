@@ -1,4 +1,9 @@
+pages_legales:
+    resource: "@PagesLegalesBundle/Resources/config/routing.yml"
+    prefix:   /
+
 ecommerce:
     resource: "@EcommerceBundle/Resources/config/routing.yml"
-    prefix:   /ecommerce/
+    prefix:   /
+
 

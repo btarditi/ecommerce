@@ -1,0 +1,4 @@
+services:
+#    pages_legales.example:
+#        class: PagesLegales\PagesLegalesBundle\Example
+#        arguments: [@service_id, "plain_value", %parameter%]
