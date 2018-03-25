@@ -35,8 +35,6 @@ class AuthenticationProviderManager implements AuthenticationManagerInterface
     private $eventDispatcher;
 
     /**
-     * Constructor.
-     *
      * @param AuthenticationProviderInterface[] $providers        An array of AuthenticationProviderInterface instances
      * @param bool                              $eraseCredentials Whether to erase credentials after authentication or not
      *
@@ -46,6 +44,12 @@ class AuthenticationProviderManager implements AuthenticationManagerInterface
     {
         if (!$providers) {
             throw new \InvalidArgumentException('You must at least add one authentication provider.');
+        }
+
+        foreach ($providers as $provider) {
+            if (!$provider instanceof AuthenticationProviderInterface) {
+                throw new \InvalidArgumentException(sprintf('Provider "%s" must implement the AuthenticationProviderInterface.', get_class($provider)));
+            }
         }
 
         $this->providers = $providers;
@@ -77,9 +81,9 @@ class AuthenticationProviderManager implements AuthenticationManagerInterface
                     break;
                 }
             } catch (AccountStatusException $e) {
-                $e->setToken($token);
+                $lastException = $e;
 
-                throw $e;
+                break;
             } catch (AuthenticationException $e) {
                 $lastException = $e;
             }

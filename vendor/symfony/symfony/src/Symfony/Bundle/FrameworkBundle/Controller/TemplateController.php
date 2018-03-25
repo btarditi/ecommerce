@@ -24,17 +24,22 @@ class TemplateController extends ContainerAware
     /**
      * Renders a template.
      *
-     * @param string       $template  The template name
-     * @param int|null     $maxAge    Max age for client caching
-     * @param int|null     $sharedAge Max age for shared (proxy) caching
-     * @param bool|null    $private   Whether or not caching should apply for client caches only
+     * @param string    $template  The template name
+     * @param int|null  $maxAge    Max age for client caching
+     * @param int|null  $sharedAge Max age for shared (proxy) caching
+     * @param bool|null $private   Whether or not caching should apply for client caches only
      *
      * @return Response A Response instance
      */
     public function templateAction($template, $maxAge = null, $sharedAge = null, $private = null)
     {
-        /** @var $response \Symfony\Component\HttpFoundation\Response */
-        $response = $this->container->get('templating')->renderResponse($template);
+        if ($this->container->has('templating')) {
+            $response = $this->container->get('templating')->renderResponse($template);
+        } elseif ($this->container->has('twig')) {
+            $response = new Response($this->container->get('twig')->render($template));
+        } else {
+            throw new \LogicException('You can not use the TemplateController if the Templating Component or the Twig Bundle are not available.');
+        }
 
         if ($maxAge) {
             $response->setMaxAge($maxAge);
@@ -46,8 +51,8 @@ class TemplateController extends ContainerAware
 
         if ($private) {
             $response->setPrivate();
-        } elseif ($private === false || (null === $private && ($maxAge || $sharedAge))) {
-            $response->setPublic($private);
+        } elseif (false === $private || (null === $private && ($maxAge || $sharedAge))) {
+            $response->setPublic();
         }
 
         return $response;

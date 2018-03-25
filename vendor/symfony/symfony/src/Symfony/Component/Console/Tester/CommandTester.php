@@ -29,11 +29,6 @@ class CommandTester
     private $output;
     private $statusCode;
 
-    /**
-     * Constructor.
-     *
-     * @param Command $command A Command instance to test.
-     */
     public function __construct(Command $command)
     {
         $this->command = $command;
@@ -42,16 +37,16 @@ class CommandTester
     /**
      * Executes the command.
      *
-     * Available options:
+     * Available execution options:
      *
      *  * interactive: Sets the input interactive flag
      *  * decorated:   Sets the output decorated flag
      *  * verbosity:   Sets the output verbosity flag
      *
-     * @param array $input   An array of arguments and options
-     * @param array $options An array of options
+     * @param array $input   An array of command arguments and options
+     * @param array $options An array of execution options
      *
-     * @return int     The command exit code
+     * @return int The command exit code
      */
     public function execute(array $input, array $options = array())
     {
@@ -61,7 +56,7 @@ class CommandTester
             && (null !== $application = $this->command->getApplication())
             && $application->getDefinition()->hasArgument('command')
         ) {
-            $input['command'] = $this->command->getName();
+            $input = array_merge(array('command' => $this->command->getName()), $input);
         }
 
         $this->input = new ArrayInput($input);
@@ -70,9 +65,7 @@ class CommandTester
         }
 
         $this->output = new StreamOutput(fopen('php://memory', 'w', false));
-        if (isset($options['decorated'])) {
-            $this->output->setDecorated($options['decorated']);
-        }
+        $this->output->setDecorated(isset($options['decorated']) ? $options['decorated'] : false);
         if (isset($options['verbosity'])) {
             $this->output->setVerbosity($options['verbosity']);
         }
@@ -83,7 +76,7 @@ class CommandTester
     /**
      * Gets the display returned by the last execution of the command.
      *
-     * @param bool    $normalize Whether to normalize end of lines to \n or not
+     * @param bool $normalize Whether to normalize end of lines to \n or not
      *
      * @return string The display
      */
@@ -123,7 +116,7 @@ class CommandTester
     /**
      * Gets the status code returned by the last execution of the application.
      *
-     * @return int     The status code
+     * @return int The status code
      */
     public function getStatusCode()
     {

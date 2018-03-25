@@ -12,6 +12,7 @@
 namespace Symfony\Component\DependencyInjection\Compiler;
 
 use Symfony\Component\DependencyInjection\Alias;
+use Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -26,8 +27,6 @@ class ResolveReferencesToAliasesPass implements CompilerPassInterface
 
     /**
      * Processes the ContainerBuilder to replace references to aliases with actual service references.
-     *
-     * @param ContainerBuilder $container
      */
     public function process(ContainerBuilder $container)
     {
@@ -41,6 +40,8 @@ class ResolveReferencesToAliasesPass implements CompilerPassInterface
             $definition->setArguments($this->processArguments($definition->getArguments()));
             $definition->setMethodCalls($this->processArguments($definition->getMethodCalls()));
             $definition->setProperties($this->processArguments($definition->getProperties()));
+            $definition->setFactory($this->processFactory($definition->getFactory()));
+            $definition->setFactoryService($this->processFactoryService($definition->getFactoryService(false)), false);
         }
 
         foreach ($container->getAliases() as $id => $alias) {
@@ -67,12 +68,36 @@ class ResolveReferencesToAliasesPass implements CompilerPassInterface
                 $defId = $this->getDefinitionId($id = (string) $argument);
 
                 if ($defId !== $id) {
-                    $arguments[$k] = new Reference($defId, $argument->getInvalidBehavior(), $argument->isStrict());
+                    $arguments[$k] = new Reference($defId, $argument->getInvalidBehavior(), $argument->isStrict(false));
                 }
             }
         }
 
         return $arguments;
+    }
+
+    private function processFactoryService($factoryService)
+    {
+        if (null === $factoryService) {
+            return;
+        }
+
+        return $this->getDefinitionId($factoryService);
+    }
+
+    private function processFactory($factory)
+    {
+        if (null === $factory || !is_array($factory) || !$factory[0] instanceof Reference) {
+            return $factory;
+        }
+
+        $defId = $this->getDefinitionId($id = (string) $factory[0]);
+
+        if ($defId !== $id) {
+            $factory[0] = new Reference($defId, $factory[0]->getInvalidBehavior(), $factory[0]->isStrict(false));
+        }
+
+        return $factory;
     }
 
     /**
@@ -84,7 +109,12 @@ class ResolveReferencesToAliasesPass implements CompilerPassInterface
      */
     private function getDefinitionId($id)
     {
+        $seen = array();
         while ($this->container->hasAlias($id)) {
+            if (isset($seen[$id])) {
+                throw new ServiceCircularReferenceException($id, array_keys($seen));
+            }
+            $seen[$id] = true;
             $id = (string) $this->container->getAlias($id);
         }
 

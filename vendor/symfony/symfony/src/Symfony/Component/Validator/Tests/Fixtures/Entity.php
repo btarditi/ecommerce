@@ -19,7 +19,7 @@ use Symfony\Component\Validator\ExecutionContextInterface;
  * @Assert\GroupSequence({"Foo", "Entity"})
  * @Assert\Callback({"Symfony\Component\Validator\Tests\Fixtures\CallbackClass", "callback"})
  */
-class Entity extends EntityParent implements EntityInterface
+class Entity extends EntityParent implements EntityInterfaceB
 {
     /**
      * @Assert\NotNull
@@ -32,9 +32,10 @@ class Entity extends EntityParent implements EntityInterface
      * })
      * @Assert\Choice(choices={"A", "B"}, message="Must be one of %choices%")
      */
-    protected $firstName;
+    public $firstName;
     protected $lastName;
     public $reference;
+    public $reference2;
     private $internal;
     public $data = 'Overridden data';
     public $initialized = false;
@@ -49,6 +50,11 @@ class Entity extends EntityParent implements EntityInterface
         return $this->internal.' from getter';
     }
 
+    public function setLastName($lastName)
+    {
+        $this->lastName = $lastName;
+    }
+
     /**
      * @Assert\NotNull
      */
@@ -57,13 +63,33 @@ class Entity extends EntityParent implements EntityInterface
         return $this->lastName;
     }
 
+    public function getValid()
+    {
+    }
+
+    /**
+     * @Assert\IsTrue
+     */
+    public function isValid()
+    {
+        return 'valid';
+    }
+
+    /**
+     * @Assert\IsTrue
+     */
+    public function hasPermissions()
+    {
+        return 'permissions';
+    }
+
     public function getData()
     {
         return 'Overridden data';
     }
 
     /**
-     * @Assert\Callback
+     * @Assert\Callback(payload="foo")
      */
     public function validateMe(ExecutionContextInterface $context)
     {

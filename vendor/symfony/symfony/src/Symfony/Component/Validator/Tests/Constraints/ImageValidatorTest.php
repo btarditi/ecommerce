@@ -13,7 +13,11 @@ namespace Symfony\Component\Validator\Tests\Constraints;
 
 use Symfony\Component\Validator\Constraints\Image;
 use Symfony\Component\Validator\Constraints\ImageValidator;
+use Symfony\Component\Validator\Validation;
 
+/**
+ * @requires extension fileinfo
+ */
 class ImageValidatorTest extends AbstractConstraintValidatorTest
 {
     protected $context;
@@ -28,6 +32,11 @@ class ImageValidatorTest extends AbstractConstraintValidatorTest
     protected $imageLandscape;
     protected $imagePortrait;
     protected $image4By3;
+
+    protected function getApiVersion()
+    {
+        return Validation::API_VERSION_2_5;
+    }
 
     protected function createValidator()
     {
@@ -65,6 +74,21 @@ class ImageValidatorTest extends AbstractConstraintValidatorTest
         $this->assertNoViolation();
     }
 
+    public function testFileNotFound()
+    {
+        // Check that the logic from FileValidator still works
+        $constraint = new Image(array(
+            'notFoundMessage' => 'myMessage',
+        ));
+
+        $this->validator->validate('foobar', $constraint);
+
+        $this->buildViolation('myMessage')
+            ->setParameter('{{ file }}', '"foobar"')
+            ->setCode(Image::NOT_FOUND_ERROR)
+            ->assertRaised();
+    }
+
     public function testValidSize()
     {
         $constraint = new Image(array(
@@ -91,6 +115,7 @@ class ImageValidatorTest extends AbstractConstraintValidatorTest
         $this->buildViolation('myMessage')
             ->setParameter('{{ width }}', '2')
             ->setParameter('{{ min_width }}', '3')
+            ->setCode(Image::TOO_NARROW_ERROR)
             ->assertRaised();
     }
 
@@ -106,6 +131,7 @@ class ImageValidatorTest extends AbstractConstraintValidatorTest
         $this->buildViolation('myMessage')
             ->setParameter('{{ width }}', '2')
             ->setParameter('{{ max_width }}', '1')
+            ->setCode(Image::TOO_WIDE_ERROR)
             ->assertRaised();
     }
 
@@ -121,6 +147,7 @@ class ImageValidatorTest extends AbstractConstraintValidatorTest
         $this->buildViolation('myMessage')
             ->setParameter('{{ height }}', '2')
             ->setParameter('{{ min_height }}', '3')
+            ->setCode(Image::TOO_LOW_ERROR)
             ->assertRaised();
     }
 
@@ -136,6 +163,7 @@ class ImageValidatorTest extends AbstractConstraintValidatorTest
         $this->buildViolation('myMessage')
             ->setParameter('{{ height }}', '2')
             ->setParameter('{{ max_height }}', '1')
+            ->setCode(Image::TOO_HIGH_ERROR)
             ->assertRaised();
     }
 
@@ -196,10 +224,11 @@ class ImageValidatorTest extends AbstractConstraintValidatorTest
 
         $this->validator->validate($this->image, $constraint);
 
-        $this->assertViolation('myMessage', array(
-            '{{ ratio }}' => 1,
-            '{{ min_ratio }}' => 2,
-        ));
+        $this->buildViolation('myMessage')
+            ->setParameter('{{ ratio }}', 1)
+            ->setParameter('{{ min_ratio }}', 2)
+            ->setCode(Image::RATIO_TOO_SMALL_ERROR)
+            ->assertRaised();
     }
 
     public function testRatioTooBig()
@@ -211,10 +240,11 @@ class ImageValidatorTest extends AbstractConstraintValidatorTest
 
         $this->validator->validate($this->image, $constraint);
 
-        $this->assertViolation('myMessage', array(
-            '{{ ratio }}' => 1,
-            '{{ max_ratio }}' => 0.5,
-        ));
+        $this->buildViolation('myMessage')
+            ->setParameter('{{ ratio }}', 1)
+            ->setParameter('{{ max_ratio }}', 0.5)
+            ->setCode(Image::RATIO_TOO_BIG_ERROR)
+            ->assertRaised();
     }
 
     public function testMaxRatioUsesTwoDecimalsOnly()
@@ -261,10 +291,11 @@ class ImageValidatorTest extends AbstractConstraintValidatorTest
 
         $this->validator->validate($this->image, $constraint);
 
-        $this->assertViolation('myMessage', array(
-            '{{ width }}' => 2,
-            '{{ height }}' => 2,
-        ));
+        $this->buildViolation('myMessage')
+            ->setParameter('{{ width }}', 2)
+            ->setParameter('{{ height }}', 2)
+            ->setCode(Image::SQUARE_NOT_ALLOWED_ERROR)
+            ->assertRaised();
     }
 
     public function testLandscapeNotAllowed()
@@ -276,10 +307,11 @@ class ImageValidatorTest extends AbstractConstraintValidatorTest
 
         $this->validator->validate($this->imageLandscape, $constraint);
 
-        $this->assertViolation('myMessage', array(
-            '{{ width }}' => 2,
-            '{{ height }}' => 1,
-        ));
+        $this->buildViolation('myMessage')
+            ->setParameter('{{ width }}', 2)
+            ->setParameter('{{ height }}', 1)
+            ->setCode(Image::LANDSCAPE_NOT_ALLOWED_ERROR)
+            ->assertRaised();
     }
 
     public function testPortraitNotAllowed()
@@ -291,9 +323,10 @@ class ImageValidatorTest extends AbstractConstraintValidatorTest
 
         $this->validator->validate($this->imagePortrait, $constraint);
 
-        $this->assertViolation('myMessage', array(
-            '{{ width }}' => 1,
-            '{{ height }}' => 2,
-        ));
+        $this->buildViolation('myMessage')
+            ->setParameter('{{ width }}', 1)
+            ->setParameter('{{ height }}', 2)
+            ->setCode(Image::PORTRAIT_NOT_ALLOWED_ERROR)
+            ->assertRaised();
     }
 }

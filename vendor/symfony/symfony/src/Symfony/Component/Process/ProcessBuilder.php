@@ -15,8 +15,6 @@ use Symfony\Component\Process\Exception\InvalidArgumentException;
 use Symfony\Component\Process\Exception\LogicException;
 
 /**
- * Process builder.
- *
  * @author Kris Wallsmith <kris@symfony.com>
  */
 class ProcessBuilder
@@ -24,15 +22,14 @@ class ProcessBuilder
     private $arguments;
     private $cwd;
     private $env = array();
-    private $stdin;
+    private $input;
     private $timeout = 60;
     private $options = array();
     private $inheritEnv = true;
     private $prefix = array();
+    private $outputDisabled = false;
 
     /**
-     * Constructor
-     *
      * @param string[] $arguments An array of arguments
      */
     public function __construct(array $arguments = array())
@@ -45,7 +42,7 @@ class ProcessBuilder
      *
      * @param string[] $arguments An array of arguments
      *
-     * @return ProcessBuilder
+     * @return static
      */
     public static function create(array $arguments = array())
     {
@@ -57,7 +54,7 @@ class ProcessBuilder
      *
      * @param string $argument A command argument
      *
-     * @return ProcessBuilder
+     * @return $this
      */
     public function add($argument)
     {
@@ -67,13 +64,13 @@ class ProcessBuilder
     }
 
     /**
-     * Adds an unescaped prefix to the command string.
+     * Adds a prefix to the command string.
      *
      * The prefix is preserved when resetting arguments.
      *
      * @param string|array $prefix A command prefix or an array of command prefixes
      *
-     * @return ProcessBuilder
+     * @return $this
      */
     public function setPrefix($prefix)
     {
@@ -90,7 +87,7 @@ class ProcessBuilder
      *
      * @param string[] $arguments
      *
-     * @return ProcessBuilder
+     * @return $this
      */
     public function setArguments(array $arguments)
     {
@@ -104,7 +101,7 @@ class ProcessBuilder
      *
      * @param null|string $cwd The working directory
      *
-     * @return ProcessBuilder
+     * @return $this
      */
     public function setWorkingDirectory($cwd)
     {
@@ -118,7 +115,7 @@ class ProcessBuilder
      *
      * @param bool $inheritEnv
      *
-     * @return ProcessBuilder
+     * @return $this
      */
     public function inheritEnvironmentVariables($inheritEnv = true)
     {
@@ -128,7 +125,7 @@ class ProcessBuilder
     }
 
     /**
-     * Sets an environment variable
+     * Sets an environment variable.
      *
      * Setting a variable overrides its previous value. Use `null` to unset a
      * defined environment variable.
@@ -136,7 +133,7 @@ class ProcessBuilder
      * @param string      $name  The variable name
      * @param null|string $value The variable value
      *
-     * @return ProcessBuilder
+     * @return $this
      */
     public function setEnv($name, $value)
     {
@@ -154,7 +151,7 @@ class ProcessBuilder
      *
      * @param array $variables The variables
      *
-     * @return ProcessBuilder
+     * @return $this
      */
     public function addEnvironmentVariables(array $variables)
     {
@@ -166,15 +163,17 @@ class ProcessBuilder
     /**
      * Sets the input of the process.
      *
-     * @param string|null $stdin The input as a string
+     * @param mixed $input The input as a string
      *
-     * @return ProcessBuilder
+     * @return $this
      *
      * @throws InvalidArgumentException In case the argument is invalid
+     *
+     * Passing an object as an input is deprecated since version 2.5 and will be removed in 3.0.
      */
-    public function setInput($stdin)
+    public function setInput($input)
     {
-        $this->stdin = ProcessUtils::validateInput(sprintf('%s::%s', __CLASS__, __FUNCTION__), $stdin);
+        $this->input = ProcessUtils::validateInput(__METHOD__, $input);
 
         return $this;
     }
@@ -184,9 +183,9 @@ class ProcessBuilder
      *
      * To disable the timeout, set this value to null.
      *
-     * @param float|null
+     * @param float|null $timeout
      *
-     * @return ProcessBuilder
+     * @return $this
      *
      * @throws InvalidArgumentException
      */
@@ -215,11 +214,35 @@ class ProcessBuilder
      * @param string $name  The option name
      * @param string $value The option value
      *
-     * @return ProcessBuilder
+     * @return $this
      */
     public function setOption($name, $value)
     {
         $this->options[$name] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Disables fetching output and error output from the underlying process.
+     *
+     * @return $this
+     */
+    public function disableOutput()
+    {
+        $this->outputDisabled = true;
+
+        return $this;
+    }
+
+    /**
+     * Enables fetching output and error output from the underlying process.
+     *
+     * @return $this
+     */
+    public function enableOutput()
+    {
+        $this->outputDisabled = false;
 
         return $this;
     }
@@ -249,6 +272,12 @@ class ProcessBuilder
             $env = $this->env;
         }
 
-        return new Process($script, $this->cwd, $env, $this->stdin, $this->timeout, $options);
+        $process = new Process($script, $this->cwd, $env, $this->input, $this->timeout, $options);
+
+        if ($this->outputDisabled) {
+            $process->disableOutput();
+        }
+
+        return $process;
     }
 }

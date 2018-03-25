@@ -26,15 +26,14 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  *
- * @api
+ * @method Request|null  getRequest()  A Request instance
+ * @method Response|null getResponse() A Response instance
  */
 class Client extends BaseClient
 {
     protected $kernel;
 
     /**
-     * Constructor.
-     *
      * @param HttpKernelInterface $kernel    An HttpKernel instance
      * @param array               $server    The server parameters (equivalent of $_SERVER)
      * @param History             $history   A History instance to store the browser history
@@ -50,29 +49,7 @@ class Client extends BaseClient
     }
 
     /**
-     * {@inheritdoc}
-     *
-     * @return Request|null A Request instance
-     */
-    public function getRequest()
-    {
-        return parent::getRequest();
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @return Response|null A Response instance
-     */
-    public function getResponse()
-    {
-        return parent::getResponse();
-    }
-
-    /**
      * Makes a request.
-     *
-     * @param Request $request A Request instance
      *
      * @return Response A Response instance
      */
@@ -90,8 +67,6 @@ class Client extends BaseClient
     /**
      * Returns the script to execute when the request must be insulated.
      *
-     * @param Request $request A Request instance
-     *
      * @return string
      */
     protected function getScript($request)
@@ -101,10 +76,13 @@ class Client extends BaseClient
 
         $r = new \ReflectionClass('\\Symfony\\Component\\ClassLoader\\ClassLoader');
         $requirePath = str_replace("'", "\\'", $r->getFileName());
-        $symfonyPath = str_replace("'", "\\'", realpath(__DIR__.'/../../..'));
+        $symfonyPath = str_replace("'", "\\'", dirname(dirname(dirname(__DIR__))));
+        $errorReporting = error_reporting();
 
         $code = <<<EOF
 <?php
+
+error_reporting($errorReporting);
 
 require_once '$requirePath';
 
@@ -135,8 +113,6 @@ EOF;
     /**
      * Converts the BrowserKit request to a HttpKernel request.
      *
-     * @param DomRequest $request A DomRequest instance
-     *
      * @return Request A Request instance
      */
     protected function filterRequest(DomRequest $request)
@@ -159,9 +135,7 @@ EOF;
      * If the size of a file is greater than the allowed size (from php.ini) then
      * an invalid UploadedFile is returned with an error set to UPLOAD_ERR_INI_SIZE.
      *
-     * @see Symfony\Component\HttpFoundation\File\UploadedFile
-     *
-     * @param array $files An array of files
+     * @see UploadedFile
      *
      * @return array An array with all uploaded files marked as already moved
      */
@@ -199,8 +173,6 @@ EOF;
 
     /**
      * Converts the HttpKernel response to a BrowserKit response.
-     *
-     * @param Response $response A Response instance
      *
      * @return DomResponse A DomResponse instance
      */

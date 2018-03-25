@@ -11,27 +11,25 @@
 
 namespace Symfony\Component\Form\Extension\Csrf\CsrfProvider;
 
+@trigger_error('The '.__NAMESPACE__.'\SessionCsrfProvider is deprecated since Symfony 2.4 and will be removed in version 3.0. Use the Symfony\Component\Security\Csrf\TokenStorage\SessionTokenStorage class instead.', E_USER_DEPRECATED);
+
 use Symfony\Component\HttpFoundation\Session\Session;
 
 /**
- * This provider uses a Symfony2 Session object to retrieve the user's
+ * This provider uses a Symfony Session object to retrieve the user's
  * session ID.
  *
  * @see DefaultCsrfProvider
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
  *
- * @deprecated Deprecated since version 2.4, to be removed in Symfony 3.0. Use
- *             {@link \Symfony\Component\Security\Csrf\CsrfTokenManager} in
+ * @deprecated since version 2.4, to be removed in 3.0.
+ *             Use {@link \Symfony\Component\Security\Csrf\CsrfTokenManager} in
  *             combination with {@link \Symfony\Component\Security\Csrf\TokenStorage\SessionTokenStorage}
  *             instead.
  */
 class SessionCsrfProvider extends DefaultCsrfProvider
 {
-    /**
-     * The user session from which the session ID is returned
-     * @var Session
-     */
     protected $session;
 
     /**
@@ -40,7 +38,7 @@ class SessionCsrfProvider extends DefaultCsrfProvider
      * A recommended value for the secret is a generated value with at least
      * 32 characters and mixed letters, digits and special characters.
      *
-     * @param Session $session The user session
+     * @param Session $session The user session from which the session ID is returned
      * @param string  $secret  A secret value included in the CSRF token
      */
     public function __construct(Session $session, $secret)

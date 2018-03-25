@@ -11,8 +11,12 @@
 
 namespace Symfony\Component\HttpKernel\Tests\EventListener;
 
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\EventListener\ExceptionListener;
+use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\Log\DebugLoggerInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,11 +24,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Tests\Logger;
 
 /**
- * ExceptionListenerTest
+ * ExceptionListenerTest.
  *
  * @author Robert Schönthal <seroscho@googlemail.com>
+ *
+ * @group time-sensitive
  */
-class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
+class ExceptionListenerTest extends TestCase
 {
     public function testConstruct()
     {
@@ -45,8 +51,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
      */
     public function testHandleWithoutLogger($event, $event2)
     {
-        // store the current error_log, and disable it temporarily
-        $errorLog = ini_set('error_log', file_exists('/dev/null') ? '/dev/null' : 'nul');
+        $this->iniSet('error_log', file_exists('/dev/null') ? '/dev/null' : 'nul');
 
         $l = new ExceptionListener('foo');
         $l->onKernelException($event);
@@ -55,12 +60,11 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
         try {
             $l->onKernelException($event2);
-        } catch (\Exception $e) {
-            $this->assertSame('foo', $e->getMessage());
+            $this->fail('RuntimeException expected');
+        } catch (\RuntimeException $e) {
+            $this->assertSame('bar', $e->getMessage());
+            $this->assertSame('foo', $e->getPrevious()->getMessage());
         }
-
-        // restore the old error_log
-        ini_set('error_log', $errorLog);
     }
 
     /**
@@ -77,8 +81,10 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
         try {
             $l->onKernelException($event2);
-        } catch (\Exception $e) {
-            $this->assertSame('foo', $e->getMessage());
+            $this->fail('RuntimeException expected');
+        } catch (\RuntimeException $e) {
+            $this->assertSame('bar', $e->getMessage());
+            $this->assertSame('foo', $e->getPrevious()->getMessage());
         }
 
         $this->assertEquals(3, $logger->countErrors());
@@ -93,8 +99,8 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
         $request = new Request();
         $exception = new \Exception('foo');
-        $event = new GetResponseForExceptionEvent(new TestKernel(), $request, 'foo', $exception);
-        $event2 = new GetResponseForExceptionEvent(new TestKernelThatThrowsException(), $request, 'foo', $exception);
+        $event = new GetResponseForExceptionEvent(new TestKernel(), $request, HttpKernelInterface::MASTER_REQUEST, $exception);
+        $event2 = new GetResponseForExceptionEvent(new TestKernelThatThrowsException(), $request, HttpKernelInterface::MASTER_REQUEST, $exception);
 
         return array(
             array($event, $event2),
@@ -103,9 +109,9 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
     public function testSubRequestFormat()
     {
-        $listener = new ExceptionListener('foo', $this->getMock('Psr\Log\LoggerInterface'));
+        $listener = new ExceptionListener('foo', $this->getMockBuilder('Psr\Log\LoggerInterface')->getMock());
 
-        $kernel = $this->getMock('Symfony\Component\HttpKernel\HttpKernelInterface');
+        $kernel = $this->getMockBuilder('Symfony\Component\HttpKernel\HttpKernelInterface')->getMock();
         $kernel->expects($this->once())->method('handle')->will($this->returnCallback(function (Request $request) {
             return new Response($request->getRequestFormat());
         }));
@@ -113,11 +119,37 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $request = Request::create('/');
         $request->setRequestFormat('xml');
 
-        $event = new GetResponseForExceptionEvent($kernel, $request, 'foo', new \Exception('foo'));
+        $event = new GetResponseForExceptionEvent($kernel, $request, HttpKernelInterface::MASTER_REQUEST, new \Exception('foo'));
         $listener->onKernelException($event);
 
         $response = $event->getResponse();
         $this->assertEquals('xml', $response->getContent());
+    }
+
+    public function testCSPHeaderIsRemoved()
+    {
+        $dispatcher = new EventDispatcher();
+        $kernel = $this->getMockBuilder('Symfony\Component\HttpKernel\HttpKernelInterface')->getMock();
+        $kernel->expects($this->once())->method('handle')->will($this->returnCallback(function (Request $request) {
+            return new Response($request->getRequestFormat());
+        }));
+
+        $listener = new ExceptionListener('foo', $this->getMockBuilder('Psr\Log\LoggerInterface')->getMock(), true);
+
+        $dispatcher->addSubscriber($listener);
+
+        $request = Request::create('/');
+        $event = new GetResponseForExceptionEvent($kernel, $request, HttpKernelInterface::MASTER_REQUEST, new \Exception('foo'));
+        $dispatcher->dispatch(KernelEvents::EXCEPTION, $event);
+
+        $response = new Response('', 200, array('content-security-policy' => "style-src 'self'"));
+        $this->assertTrue($response->headers->has('content-security-policy'));
+
+        $event = new FilterResponseEvent($kernel, $request, HttpKernelInterface::MASTER_REQUEST, $response);
+        $dispatcher->dispatch(KernelEvents::RESPONSE, $event);
+
+        $this->assertFalse($response->headers->has('content-security-policy'), 'CSP header has been removed');
+        $this->assertFalse($dispatcher->hasListeners(KernelEvents::RESPONSE), 'CSP removal listener has been removed');
     }
 }
 
@@ -141,6 +173,6 @@ class TestKernelThatThrowsException implements HttpKernelInterface
 {
     public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = true)
     {
-        throw new \Exception('bar');
+        throw new \RuntimeException('bar');
     }
 }

@@ -21,12 +21,12 @@ use Symfony\Component\Console\Input\InputOption;
  * XML descriptor.
  *
  * @author Jean-François Simon <contact@jfsimon.fr>
+ *
+ * @internal
  */
 class XmlDescriptor extends Descriptor
 {
     /**
-     * @param InputDefinition $definition
-     *
      * @return \DOMDocument
      */
     public function getInputDefinitionDocument(InputDefinition $definition)
@@ -48,8 +48,6 @@ class XmlDescriptor extends Descriptor
     }
 
     /**
-     * @param Command $command
-     *
      * @return \DOMDocument
      */
     public function getCommandDocument(Command $command)
@@ -63,20 +61,17 @@ class XmlDescriptor extends Descriptor
         $commandXML->setAttribute('id', $command->getName());
         $commandXML->setAttribute('name', $command->getName());
 
-        $commandXML->appendChild($usageXML = $dom->createElement('usage'));
-        $usageXML->appendChild($dom->createTextNode(sprintf($command->getSynopsis(), '')));
+        $commandXML->appendChild($usagesXML = $dom->createElement('usages'));
+
+        foreach (array_merge(array($command->getSynopsis()), $command->getAliases(), $command->getUsages()) as $usage) {
+            $usagesXML->appendChild($dom->createElement('usage', $usage));
+        }
 
         $commandXML->appendChild($descriptionXML = $dom->createElement('description'));
         $descriptionXML->appendChild($dom->createTextNode(str_replace("\n", "\n ", $command->getDescription())));
 
         $commandXML->appendChild($helpXML = $dom->createElement('help'));
         $helpXML->appendChild($dom->createTextNode(str_replace("\n", "\n ", $command->getProcessedHelp())));
-
-        $commandXML->appendChild($aliasesXML = $dom->createElement('aliases'));
-        foreach ($command->getAliases() as $alias) {
-            $aliasesXML->appendChild($aliasXML = $dom->createElement('alias'));
-            $aliasXML->appendChild($dom->createTextNode($alias));
-        }
 
         $definitionXML = $this->getInputDefinitionDocument($command->getNativeDefinition());
         $this->appendDocument($commandXML, $definitionXML->getElementsByTagName('definition')->item(0));
@@ -95,9 +90,9 @@ class XmlDescriptor extends Descriptor
         $dom = new \DOMDocument('1.0', 'UTF-8');
         $dom->appendChild($rootXml = $dom->createElement('symfony'));
 
-        if ($application->getName() !== 'UNKNOWN') {
+        if ('UNKNOWN' !== $application->getName()) {
             $rootXml->setAttribute('name', $application->getName());
-            if ($application->getVersion() !== 'UNKNOWN') {
+            if ('UNKNOWN' !== $application->getVersion()) {
                 $rootXml->setAttribute('version', $application->getVersion());
             }
         }
@@ -173,9 +168,6 @@ class XmlDescriptor extends Descriptor
 
     /**
      * Appends document children to parent node.
-     *
-     * @param \DOMNode $parentNode
-     * @param \DOMNode $importedParent
      */
     private function appendDocument(\DOMNode $parentNode, \DOMNode $importedParent)
     {
@@ -187,8 +179,6 @@ class XmlDescriptor extends Descriptor
     /**
      * Writes DOM document.
      *
-     * @param \DOMDocument $dom
-     *
      * @return \DOMDocument|string
      */
     private function writeDocument(\DOMDocument $dom)
@@ -198,8 +188,6 @@ class XmlDescriptor extends Descriptor
     }
 
     /**
-     * @param InputArgument $argument
-     *
      * @return \DOMDocument
      */
     private function getInputArgumentDocument(InputArgument $argument)
@@ -224,8 +212,6 @@ class XmlDescriptor extends Descriptor
     }
 
     /**
-     * @param InputOption $option
-     *
      * @return \DOMDocument
      */
     private function getInputOptionDocument(InputOption $option)

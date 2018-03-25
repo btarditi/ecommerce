@@ -18,14 +18,7 @@ use Symfony\Component\PropertyAccess\Exception\OutOfBoundsException;
  */
 class PropertyPathBuilder
 {
-    /**
-     * @var array
-     */
     private $elements = array();
-
-    /**
-     * @var array
-     */
     private $isIndex = array();
 
     /**
@@ -44,11 +37,11 @@ class PropertyPathBuilder
     /**
      * Appends a (sub-) path to the current path.
      *
-     * @param PropertyPathInterface|string $path   The path to append.
+     * @param PropertyPathInterface|string $path   The path to append
      * @param int                          $offset The offset where the appended
-     *                                             piece starts in $path.
-     * @param int                          $length The length of the appended piece.
-     *                                             If 0, the full path is appended.
+     *                                             piece starts in $path
+     * @param int                          $length The length of the appended piece
+     *                                             If 0, the full path is appended
      */
     public function append($path, $offset = 0, $length = 0)
     {
@@ -93,8 +86,8 @@ class PropertyPathBuilder
     /**
      * Removes elements from the current path.
      *
-     * @param int     $offset The offset at which to remove
-     * @param int     $length The length of the removed piece
+     * @param int $offset The offset at which to remove
+     * @param int $length The length of the removed piece
      *
      * @throws OutOfBoundsException if offset is invalid
      */
@@ -110,13 +103,13 @@ class PropertyPathBuilder
     /**
      * Replaces a sub-path by a different (sub-) path.
      *
-     * @param int                          $offset     The offset at which to replace.
-     * @param int                          $length     The length of the piece to replace.
-     * @param PropertyPathInterface|string $path       The path to insert.
+     * @param int                          $offset     The offset at which to replace
+     * @param int                          $length     The length of the piece to replace
+     * @param PropertyPathInterface|string $path       The path to insert
      * @param int                          $pathOffset The offset where the inserted piece
-     *                                                 starts in $path.
-     * @param int                          $pathLength The length of the inserted piece.
-     *                                                 If 0, the full path is inserted.
+     *                                                 starts in $path
+     * @param int                          $pathLength The length of the inserted piece
+     *                                                 If 0, the full path is inserted
      *
      * @throws OutOfBoundsException If the offset is invalid
      */
@@ -142,13 +135,14 @@ class PropertyPathBuilder
             $this->elements[$offset + $i] = $path->getElement($pathOffset + $i);
             $this->isIndex[$offset + $i] = $path->isIndex($pathOffset + $i);
         }
+        ksort($this->elements);
     }
 
     /**
      * Replaces a property element by an index element.
      *
-     * @param int     $offset The offset at which to replace
-     * @param string  $name   The new name of the element. Optional.
+     * @param int    $offset The offset at which to replace
+     * @param string $name   The new name of the element. Optional
      *
      * @throws OutOfBoundsException If the offset is invalid
      */
@@ -168,8 +162,8 @@ class PropertyPathBuilder
     /**
      * Replaces an index element by a property element.
      *
-     * @param int     $offset The offset at which to replace
-     * @param string  $name   The new name of the element. Optional.
+     * @param int    $offset The offset at which to replace
+     * @param string $name   The new name of the element. Optional
      *
      * @throws OutOfBoundsException If the offset is invalid
      */
@@ -189,7 +183,7 @@ class PropertyPathBuilder
     /**
      * Returns the length of the current path.
      *
-     * @return int     The path length
+     * @return int The path length
      */
     public function getLength()
     {
@@ -235,9 +229,9 @@ class PropertyPathBuilder
      * removed at $offset and another chunk of length $insertionLength
      * can be inserted.
      *
-     * @param  int     $offset          The offset where the removed chunk starts
-     * @param  int     $cutLength       The length of the removed chunk
-     * @param  int     $insertionLength The length of the inserted chunk
+     * @param int $offset          The offset where the removed chunk starts
+     * @param int $cutLength       The length of the removed chunk
+     * @param int $insertionLength The length of the inserted chunk
      */
     private function resize($offset, $cutLength, $insertionLength)
     {
@@ -264,8 +258,7 @@ class PropertyPathBuilder
 
             // All remaining elements should be removed
             for (; $i < $length; ++$i) {
-                unset($this->elements[$i]);
-                unset($this->isIndex[$i]);
+                unset($this->elements[$i], $this->isIndex[$i]);
             }
         } else {
             $diff = $insertionLength - $cutLength;

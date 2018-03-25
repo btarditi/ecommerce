@@ -15,6 +15,8 @@ namespace Symfony\Component\Routing\Matcher\Dumper;
  * Collection of routes.
  *
  * @author Arnaud Le Blanc <arnaud.lb@gmail.com>
+ *
+ * @internal
  */
 class DumperCollection implements \IteratorAggregate
 {
@@ -24,7 +26,7 @@ class DumperCollection implements \IteratorAggregate
     private $parent;
 
     /**
-     * @var (DumperCollection|DumperRoute)[]
+     * @var DumperCollection[]|DumperRoute[]
      */
     private $children = array();
 
@@ -36,7 +38,7 @@ class DumperCollection implements \IteratorAggregate
     /**
      * Returns the children routes and collections.
      *
-     * @return (DumperCollection|DumperRoute)[] Array of DumperCollection|DumperRoute
+     * @return self[]|DumperRoute[]
      */
     public function all()
     {
@@ -44,13 +46,13 @@ class DumperCollection implements \IteratorAggregate
     }
 
     /**
-     * Adds a route or collection
+     * Adds a route or collection.
      *
      * @param DumperRoute|DumperCollection The route or collection
      */
     public function add($child)
     {
-        if ($child instanceof DumperCollection) {
+        if ($child instanceof self) {
             $child->setParent($this);
         }
         $this->children[] = $child;
@@ -64,7 +66,7 @@ class DumperCollection implements \IteratorAggregate
     public function setAll(array $children)
     {
         foreach ($children as $child) {
-            if ($child instanceof DumperCollection) {
+            if ($child instanceof self) {
                 $child->setParent($this);
             }
         }
@@ -74,7 +76,7 @@ class DumperCollection implements \IteratorAggregate
     /**
      * Returns an iterator over the children.
      *
-     * @return \Iterator The iterator
+     * @return \Iterator|DumperCollection[]|DumperRoute[] The iterator
      */
     public function getIterator()
     {
@@ -84,7 +86,7 @@ class DumperCollection implements \IteratorAggregate
     /**
      * Returns the root of the collection.
      *
-     * @return DumperCollection The root collection
+     * @return self The root collection
      */
     public function getRoot()
     {
@@ -94,7 +96,7 @@ class DumperCollection implements \IteratorAggregate
     /**
      * Returns the parent collection.
      *
-     * @return DumperCollection|null The parent collection or null if the collection has no parent
+     * @return self|null The parent collection or null if the collection has no parent
      */
     protected function getParent()
     {
@@ -103,8 +105,6 @@ class DumperCollection implements \IteratorAggregate
 
     /**
      * Sets the parent collection.
-     *
-     * @param DumperCollection $parent The parent collection
      */
     protected function setParent(DumperCollection $parent)
     {
@@ -116,7 +116,7 @@ class DumperCollection implements \IteratorAggregate
      *
      * @param string $name The attribute name
      *
-     * @return bool    true if the attribute is defined, false otherwise
+     * @return bool true if the attribute is defined, false otherwise
      */
     public function hasAttribute($name)
     {

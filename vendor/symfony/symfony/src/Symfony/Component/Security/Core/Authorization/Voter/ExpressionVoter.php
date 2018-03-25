@@ -15,6 +15,7 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\AuthenticationTrustResolverInterface;
 use Symfony\Component\Security\Core\Authorization\ExpressionLanguage;
 use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
+use Symfony\Component\ExpressionLanguage\ExpressionFunctionProviderInterface;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -29,18 +30,16 @@ class ExpressionVoter implements VoterInterface
     private $trustResolver;
     private $roleHierarchy;
 
-    /**
-     * Constructor.
-     *
-     * @param ExpressionLanguage                   $expressionLanguage
-     * @param AuthenticationTrustResolverInterface $trustResolver
-     * @param RoleHierarchyInterface|null          $roleHierarchy
-     */
     public function __construct(ExpressionLanguage $expressionLanguage, AuthenticationTrustResolverInterface $trustResolver, RoleHierarchyInterface $roleHierarchy = null)
     {
         $this->expressionLanguage = $expressionLanguage;
         $this->trustResolver = $trustResolver;
         $this->roleHierarchy = $roleHierarchy;
+    }
+
+    public function addExpressionLanguageProvider(ExpressionFunctionProviderInterface $provider)
+    {
+        $this->expressionLanguage->registerProvider($provider);
     }
 
     /**
@@ -96,6 +95,7 @@ class ExpressionVoter implements VoterInterface
             'token' => $token,
             'user' => $token->getUser(),
             'object' => $object,
+            'subject' => $object,
             'roles' => array_map(function ($role) { return $role->getRole(); }, $roles),
             'trust_resolver' => $this->trustResolver,
         );

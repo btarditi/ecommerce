@@ -26,23 +26,23 @@ namespace Symfony\Component\HttpFoundation\File\MimeType;
 class ExtensionGuesser implements ExtensionGuesserInterface
 {
     /**
-     * The singleton instance
+     * The singleton instance.
      *
      * @var ExtensionGuesser
      */
     private static $instance = null;
 
     /**
-     * All registered ExtensionGuesserInterface instances
+     * All registered ExtensionGuesserInterface instances.
      *
      * @var array
      */
     protected $guessers = array();
 
     /**
-     * Returns the singleton instance
+     * Returns the singleton instance.
      *
-     * @return ExtensionGuesser
+     * @return self
      */
     public static function getInstance()
     {
@@ -54,7 +54,7 @@ class ExtensionGuesser implements ExtensionGuesserInterface
     }
 
     /**
-     * Registers all natively provided extension guessers
+     * Registers all natively provided extension guessers.
      */
     private function __construct()
     {
@@ -62,11 +62,9 @@ class ExtensionGuesser implements ExtensionGuesserInterface
     }
 
     /**
-     * Registers a new extension guesser
+     * Registers a new extension guesser.
      *
      * When guessing, this guesser is preferred over previously registered ones.
-     *
-     * @param ExtensionGuesserInterface $guesser
      */
     public function register(ExtensionGuesserInterface $guesser)
     {
@@ -74,7 +72,7 @@ class ExtensionGuesser implements ExtensionGuesserInterface
     }
 
     /**
-     * Tries to guess the extension
+     * Tries to guess the extension.
      *
      * The mime type is passed to each registered mime type guesser in reverse order
      * of their registration (last registered is queried first). Once a guesser
@@ -83,7 +81,7 @@ class ExtensionGuesser implements ExtensionGuesserInterface
      *
      * @param string $mimeType The mime type
      *
-     * @return string          The guessed extension or NULL, if none could be guessed
+     * @return string The guessed extension or NULL, if none could be guessed
      */
     public function guess($mimeType)
     {

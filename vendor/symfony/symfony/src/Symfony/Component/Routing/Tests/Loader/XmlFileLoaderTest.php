@@ -11,15 +11,16 @@
 
 namespace Symfony\Component\Routing\Tests\Loader;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Routing\Loader\XmlFileLoader;
 use Symfony\Component\Routing\Tests\Fixtures\CustomXmlFileLoader;
 
-class XmlFileLoaderTest extends \PHPUnit_Framework_TestCase
+class XmlFileLoaderTest extends TestCase
 {
     public function testSupports()
     {
-        $loader = new XmlFileLoader($this->getMock('Symfony\Component\Config\FileLocator'));
+        $loader = new XmlFileLoader($this->getMockBuilder('Symfony\Component\Config\FileLocator')->getMock());
 
         $this->assertTrue($loader->supports('foo.xml'), '->supports() returns true if the resource is loadable');
         $this->assertFalse($loader->supports('foo.foo'), '->supports() returns true if the resource is loadable');
@@ -32,23 +33,37 @@ class XmlFileLoaderTest extends \PHPUnit_Framework_TestCase
     {
         $loader = new XmlFileLoader(new FileLocator(array(__DIR__.'/../Fixtures')));
         $routeCollection = $loader->load('validpattern.xml');
-        $routes = $routeCollection->all();
+        $route = $routeCollection->get('blog_show');
 
-        $this->assertCount(3, $routes, 'Three routes are loaded');
-        $this->assertContainsOnly('Symfony\Component\Routing\Route', $routes);
+        $this->assertInstanceOf('Symfony\Component\Routing\Route', $route);
+        $this->assertSame('/blog/{slug}', $route->getPath());
+        $this->assertSame('{locale}.example.com', $route->getHost());
+        $this->assertSame('MyBundle:Blog:show', $route->getDefault('_controller'));
+        $this->assertSame('\w+', $route->getRequirement('locale'));
+        $this->assertSame('RouteCompiler', $route->getOption('compiler_class'));
+        $this->assertEquals(array('GET', 'POST', 'PUT', 'OPTIONS'), $route->getMethods());
+        $this->assertEquals(array('https'), $route->getSchemes());
+        $this->assertEquals('context.getMethod() == "GET"', $route->getCondition());
+    }
 
-        $identicalRoutes = array_slice($routes, 0, 2);
+    /**
+     * @group legacy
+     */
+    public function testLegacyRouteDefinitionLoading()
+    {
+        $loader = new XmlFileLoader(new FileLocator(array(__DIR__.'/../Fixtures')));
+        $routeCollection = $loader->load('legacy_validpattern.xml');
+        $route = $routeCollection->get('blog_show_legacy');
 
-        foreach ($identicalRoutes as $route) {
-            $this->assertSame('/blog/{slug}', $route->getPath());
-            $this->assertSame('{locale}.example.com', $route->getHost());
-            $this->assertSame('MyBundle:Blog:show', $route->getDefault('_controller'));
-            $this->assertSame('\w+', $route->getRequirement('locale'));
-            $this->assertSame('RouteCompiler', $route->getOption('compiler_class'));
-            $this->assertEquals(array('GET', 'POST', 'PUT', 'OPTIONS'), $route->getMethods());
-            $this->assertEquals(array('https'), $route->getSchemes());
-            $this->assertEquals('context.getMethod() == "GET"', $route->getCondition());
-        }
+        $this->assertInstanceOf('Symfony\Component\Routing\Route', $route);
+        $this->assertSame('/blog/{slug}', $route->getPath());
+        $this->assertSame('{locale}.example.com', $route->getHost());
+        $this->assertSame('MyBundle:Blog:show', $route->getDefault('_controller'));
+        $this->assertSame('\w+', $route->getRequirement('locale'));
+        $this->assertSame('RouteCompiler', $route->getOption('compiler_class'));
+        $this->assertEquals(array('GET', 'POST', 'PUT', 'OPTIONS'), $route->getMethods());
+        $this->assertEquals(array('https'), $route->getSchemes());
+        $this->assertEquals('context.getMethod() == "GET"', $route->getCondition());
     }
 
     public function testLoadWithNamespacePrefix()
@@ -64,7 +79,7 @@ class XmlFileLoaderTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('MyBundle:Blog:show', $route->getDefault('_controller'));
         $this->assertSame('\w+', $route->getRequirement('slug'));
         $this->assertSame('en|fr|de', $route->getRequirement('_locale'));
-        $this->assertSame(null, $route->getDefault('slug'));
+        $this->assertNull($route->getDefault('slug'));
         $this->assertSame('RouteCompiler', $route->getOption('compiler_class'));
     }
 
@@ -74,7 +89,7 @@ class XmlFileLoaderTest extends \PHPUnit_Framework_TestCase
         $routeCollection = $loader->load('validresource.xml');
         $routes = $routeCollection->all();
 
-        $this->assertCount(3, $routes, 'Three routes are loaded');
+        $this->assertCount(2, $routes, 'Two routes are loaded');
         $this->assertContainsOnly('Symfony\Component\Routing\Route', $routes);
 
         foreach ($routes as $route) {

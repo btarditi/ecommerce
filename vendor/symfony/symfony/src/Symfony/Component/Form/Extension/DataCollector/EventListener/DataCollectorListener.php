@@ -20,14 +20,10 @@ use Symfony\Component\Form\FormEvents;
  * Listener that invokes a data collector for the {@link FormEvents::POST_SET_DATA}
  * and {@link FormEvents::POST_SUBMIT} events.
  *
- * @since  2.4
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class DataCollectorListener implements EventSubscriberInterface
 {
-    /**
-     * @var FormDataCollectorInterface
-     */
     private $dataCollector;
 
     public function __construct(FormDataCollectorInterface $dataCollector)
@@ -50,8 +46,6 @@ class DataCollectorListener implements EventSubscriberInterface
 
     /**
      * Listener for the {@link FormEvents::POST_SET_DATA} event.
-     *
-     * @param FormEvent $event The event object
      */
     public function postSetData(FormEvent $event)
     {
@@ -66,8 +60,6 @@ class DataCollectorListener implements EventSubscriberInterface
 
     /**
      * Listener for the {@link FormEvents::POST_SUBMIT} event.
-     *
-     * @param FormEvent $event The event object
      */
     public function postSubmit(FormEvent $event)
     {
@@ -76,8 +68,7 @@ class DataCollectorListener implements EventSubscriberInterface
             $this->dataCollector->collectSubmittedData($event->getForm());
 
             // Assemble a form tree
-            // This is done again in collectViewVariables(), but that method
-            // is not guaranteed to be called (i.e. when no view is created)
+            // This is done again after the view is built, but we need it here as the view is not always created.
             $this->dataCollector->buildPreliminaryFormTree($event->getForm());
         }
     }

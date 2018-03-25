@@ -16,8 +16,6 @@ use Symfony\Component\Routing\Route;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
- *
- * @api
  */
 abstract class RedirectableUrlMatcher extends UrlMatcher implements RedirectableUrlMatcherInterface
 {
@@ -51,14 +49,15 @@ abstract class RedirectableUrlMatcher extends UrlMatcher implements Redirectable
     protected function handleRouteRequirements($pathinfo, $name, Route $route)
     {
         // expression condition
-        if ($route->getCondition() && !$this->getExpressionLanguage()->evaluate($route->getCondition(), array('context' => $this->context, 'request' => $this->request))) {
+        if ($route->getCondition() && !$this->getExpressionLanguage()->evaluate($route->getCondition(), array('context' => $this->context, 'request' => $this->request ?: $this->createRequest($pathinfo)))) {
             return array(self::REQUIREMENT_MISMATCH, null);
         }
 
         // check HTTP scheme requirement
-        $scheme = $route->getRequirement('_scheme');
-        if ($scheme && $this->context->getScheme() !== $scheme) {
-            return array(self::ROUTE_MATCH, $this->redirect($pathinfo, $name, $scheme));
+        $scheme = $this->context->getScheme();
+        $schemes = $route->getSchemes();
+        if ($schemes && !$route->hasScheme($scheme)) {
+            return array(self::ROUTE_MATCH, $this->redirect($pathinfo, $name, current($schemes)));
         }
 
         return array(self::REQUIREMENT_MATCH, null);

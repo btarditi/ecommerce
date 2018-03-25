@@ -11,24 +11,21 @@
 
 namespace Symfony\Component\HttpFoundation\Tests\Session\Flash;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 
 /**
- * FlashBagTest
+ * FlashBagTest.
  *
  * @author Drak <drak@zikula.org>
  */
-class FlashBagTest extends \PHPUnit_Framework_TestCase
+class FlashBagTest extends TestCase
 {
     /**
-     * @var \Symfony\Component\HttpFoundation\SessionFlash\FlashBagInterface
+     * @var \Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface
      */
     private $bag;
 
-    /**
-     * @var array
-     */
     protected $array = array();
 
     protected function setUp()
@@ -39,7 +36,7 @@ class FlashBagTest extends \PHPUnit_Framework_TestCase
         $this->bag->initialize($this->array);
     }
 
-    public function tearDown()
+    protected function tearDown()
     {
         $this->bag = null;
         parent::tearDown();
@@ -91,7 +88,7 @@ class FlashBagTest extends \PHPUnit_Framework_TestCase
         $this->bag->set('error', 'Bar');
         $this->assertEquals(array(
             'notice' => array('Foo'),
-            'error' => array('Bar'),), $this->bag->all()
+            'error' => array('Bar'), ), $this->bag->all()
         );
 
         $this->assertEquals(array(), $this->bag->all());
@@ -134,9 +131,9 @@ class FlashBagTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Symfony\Component\HttpFoundation\Session\Flash\FlashBag::getIterator
+     * @group legacy
      */
-    public function testGetIterator()
+    public function testLegacyGetIterator()
     {
         $flashes = array('hello' => 'world', 'beep' => 'boop', 'notice' => 'nope');
         foreach ($flashes as $key => $val) {
@@ -146,7 +143,7 @@ class FlashBagTest extends \PHPUnit_Framework_TestCase
         $i = 0;
         foreach ($this->bag as $key => $val) {
             $this->assertEquals(array($flashes[$key]), $val);
-            $i++;
+            ++$i;
         }
 
         $this->assertEquals(count($flashes), $i);

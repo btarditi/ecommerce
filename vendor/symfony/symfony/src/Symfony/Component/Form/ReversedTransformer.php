@@ -12,7 +12,7 @@
 namespace Symfony\Component\Form;
 
 /**
- * Reverses a transformer
+ * Reverses a transformer.
  *
  * When the transform() method is called, the reversed transformer's
  * reverseTransform() method is called and vice versa.
@@ -21,17 +21,8 @@ namespace Symfony\Component\Form;
  */
 class ReversedTransformer implements DataTransformerInterface
 {
-    /**
-     * The reversed transformer
-     * @var DataTransformerInterface
-     */
     protected $reversedTransformer;
 
-    /**
-     * Reverses this transformer
-     *
-     * @param DataTransformerInterface $reversedTransformer
-     */
     public function __construct(DataTransformerInterface $reversedTransformer)
     {
         $this->reversedTransformer = $reversedTransformer;

@@ -11,14 +11,15 @@
 
 namespace Symfony\Component\Routing\Tests\Loader;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Routing\Loader\PhpFileLoader;
 
-class PhpFileLoaderTest extends \PHPUnit_Framework_TestCase
+class PhpFileLoaderTest extends TestCase
 {
     public function testSupports()
     {
-        $loader = new PhpFileLoader($this->getMock('Symfony\Component\Config\FileLocator'));
+        $loader = new PhpFileLoader($this->getMockBuilder('Symfony\Component\Config\FileLocator')->getMock());
 
         $this->assertTrue($loader->supports('foo.php'), '->supports() returns true if the resource is loadable');
         $this->assertFalse($loader->supports('foo.foo'), '->supports() returns true if the resource is loadable');
@@ -33,7 +34,7 @@ class PhpFileLoaderTest extends \PHPUnit_Framework_TestCase
         $routeCollection = $loader->load('validpattern.php');
         $routes = $routeCollection->all();
 
-        $this->assertCount(2, $routes, 'Two routes are loaded');
+        $this->assertCount(1, $routes, 'One route is loaded');
         $this->assertContainsOnly('Symfony\Component\Routing\Route', $routes);
 
         foreach ($routes as $route) {
@@ -44,5 +45,39 @@ class PhpFileLoaderTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals(array('GET', 'POST', 'PUT', 'OPTIONS'), $route->getMethods());
             $this->assertEquals(array('https'), $route->getSchemes());
         }
+    }
+
+    public function testLoadWithImport()
+    {
+        $loader = new PhpFileLoader(new FileLocator(array(__DIR__.'/../Fixtures')));
+        $routeCollection = $loader->load('validresource.php');
+        $routes = $routeCollection->all();
+
+        $this->assertCount(1, $routes, 'One route is loaded');
+        $this->assertContainsOnly('Symfony\Component\Routing\Route', $routes);
+
+        foreach ($routes as $route) {
+            $this->assertSame('/prefix/blog/{slug}', $route->getPath());
+            $this->assertSame('MyBlogBundle:Blog:show', $route->getDefault('_controller'));
+            $this->assertSame('{locale}.example.com', $route->getHost());
+            $this->assertSame('RouteCompiler', $route->getOption('compiler_class'));
+            $this->assertEquals(array('GET', 'POST', 'PUT', 'OPTIONS'), $route->getMethods());
+            $this->assertEquals(array('https'), $route->getSchemes());
+        }
+    }
+
+    public function testThatDefiningVariableInConfigFileHasNoSideEffects()
+    {
+        $locator = new FileLocator(array(__DIR__.'/../Fixtures'));
+        $loader = new PhpFileLoader($locator);
+        $routeCollection = $loader->load('with_define_path_variable.php');
+        $resources = $routeCollection->getResources();
+        $this->assertCount(1, $resources);
+        $this->assertContainsOnly('Symfony\Component\Config\Resource\ResourceInterface', $resources);
+        $fileResource = reset($resources);
+        $this->assertSame(
+            realpath($locator->locate('with_define_path_variable.php')),
+            (string) $fileResource
+        );
     }
 }

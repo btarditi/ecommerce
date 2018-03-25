@@ -11,24 +11,20 @@
 
 namespace Symfony\Component\Finder\Exception;
 
+@trigger_error('The '.__NAMESPACE__.'\ShellCommandFailureException class is deprecated since Symfony 2.8 and will be removed in 3.0.', E_USER_DEPRECATED);
+
 use Symfony\Component\Finder\Adapter\AdapterInterface;
 use Symfony\Component\Finder\Shell\Command;
 
 /**
  * @author Jean-François Simon <contact@jfsimon.fr>
+ *
+ * @deprecated since 2.8, to be removed in 3.0.
  */
 class ShellCommandFailureException extends AdapterFailureException
 {
-    /**
-     * @var Command
-     */
     private $command;
 
-    /**
-     * @param AdapterInterface $adapter
-     * @param Command          $command
-     * @param \Exception|null  $previous
-     */
     public function __construct(AdapterInterface $adapter, Command $command, \Exception $previous = null)
     {
         $this->command = $command;

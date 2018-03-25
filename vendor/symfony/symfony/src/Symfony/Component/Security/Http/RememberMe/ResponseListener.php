@@ -22,11 +22,12 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class ResponseListener implements EventSubscriberInterface
 {
-    /**
-     * @param FilterResponseEvent $event
-     */
     public function onKernelResponse(FilterResponseEvent $event)
     {
+        if (!$event->isMasterRequest()) {
+            return;
+        }
+
         $request = $event->getRequest();
         $response = $event->getResponse();
 

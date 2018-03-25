@@ -12,6 +12,7 @@
 namespace Symfony\Bridge\Doctrine\Validator\Constraints;
 
 use Doctrine\Common\Persistence\ManagerRegistry;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Exception\ConstraintDefinitionException;
@@ -24,14 +25,8 @@ use Symfony\Component\Validator\ConstraintValidator;
  */
 class UniqueEntityValidator extends ConstraintValidator
 {
-    /**
-     * @var ManagerRegistry
-     */
     private $registry;
 
-    /**
-     * @param ManagerRegistry $registry
-     */
     public function __construct(ManagerRegistry $registry)
     {
         $this->registry = $registry;
@@ -46,6 +41,10 @@ class UniqueEntityValidator extends ConstraintValidator
      */
     public function validate($entity, Constraint $constraint)
     {
+        if (!$constraint instanceof UniqueEntity) {
+            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\UniqueEntity');
+        }
+
         if (!is_array($constraint->fields) && !is_string($constraint->fields)) {
             throw new UnexpectedTypeException($constraint->fields, 'array');
         }
@@ -58,6 +57,10 @@ class UniqueEntityValidator extends ConstraintValidator
 
         if (0 === count($fields)) {
             throw new ConstraintDefinitionException('At least one field has to be specified.');
+        }
+
+        if (null === $entity) {
+            return;
         }
 
         if ($constraint->em) {
@@ -78,16 +81,24 @@ class UniqueEntityValidator extends ConstraintValidator
         /* @var $class \Doctrine\Common\Persistence\Mapping\ClassMetadata */
 
         $criteria = array();
+        $hasNullValue = false;
+
         foreach ($fields as $fieldName) {
             if (!$class->hasField($fieldName) && !$class->hasAssociation($fieldName)) {
-                throw new ConstraintDefinitionException(sprintf("The field '%s' is not mapped by Doctrine, so it cannot be validated for uniqueness.", $fieldName));
+                throw new ConstraintDefinitionException(sprintf('The field "%s" is not mapped by Doctrine, so it cannot be validated for uniqueness.', $fieldName));
             }
 
-            $criteria[$fieldName] = $class->reflFields[$fieldName]->getValue($entity);
+            $fieldValue = $class->reflFields[$fieldName]->getValue($entity);
 
-            if ($constraint->ignoreNull && null === $criteria[$fieldName]) {
-                return;
+            if (null === $fieldValue) {
+                $hasNullValue = true;
             }
+
+            if ($constraint->ignoreNull && null === $fieldValue) {
+                continue;
+            }
+
+            $criteria[$fieldName] = $fieldValue;
 
             if (null !== $criteria[$fieldName] && $class->hasAssociation($fieldName)) {
                 /* Ensure the Proxy is initialized before using reflection to
@@ -95,22 +106,26 @@ class UniqueEntityValidator extends ConstraintValidator
                  * getter methods in the Proxy are being bypassed.
                  */
                 $em->initializeObject($criteria[$fieldName]);
-
-                $relatedClass = $em->getClassMetadata($class->getAssociationTargetClass($fieldName));
-                $relatedId = $relatedClass->getIdentifierValues($criteria[$fieldName]);
-
-                if (count($relatedId) > 1) {
-                    throw new ConstraintDefinitionException(
-                        "Associated entities are not allowed to have more than one identifier field to be ".
-                        "part of a unique constraint in: ".$class->getName()."#".$fieldName
-                    );
-                }
-                $criteria[$fieldName] = array_pop($relatedId);
             }
+        }
+
+        // validation doesn't fail if one of the fields is null and if null values should be ignored
+        if ($hasNullValue && $constraint->ignoreNull) {
+            return;
+        }
+
+        // skip validation if there are no criteria (this can happen when the
+        // "ignoreNull" option is enabled and fields to be checked are null
+        if (empty($criteria)) {
+            return;
         }
 
         $repository = $em->getRepository(get_class($entity));
         $result = $repository->{$constraint->repositoryMethod}($criteria);
+
+        if ($result instanceof \IteratorAggregate) {
+            $result = $result->getIterator();
+        }
 
         /* If the result is a MongoCursor, it must be advanced to the first
          * element. Rewinding should have no ill effect if $result is another
@@ -131,7 +146,20 @@ class UniqueEntityValidator extends ConstraintValidator
         }
 
         $errorPath = null !== $constraint->errorPath ? $constraint->errorPath : $fields[0];
+        $invalidValue = isset($criteria[$errorPath]) ? $criteria[$errorPath] : $criteria[$fields[0]];
 
-        $this->context->addViolationAt($errorPath, $constraint->message, array(), $criteria[$fields[0]]);
+        if ($this->context instanceof ExecutionContextInterface) {
+            $this->context->buildViolation($constraint->message)
+                ->atPath($errorPath)
+                ->setInvalidValue($invalidValue)
+                ->setCode(UniqueEntity::NOT_UNIQUE_ERROR)
+                ->addViolation();
+        } else {
+            $this->buildViolation($constraint->message)
+                ->atPath($errorPath)
+                ->setInvalidValue($invalidValue)
+                ->setCode(UniqueEntity::NOT_UNIQUE_ERROR)
+                ->addViolation();
+        }
     }
 }

@@ -11,6 +11,7 @@
 
 namespace Symfony\Bundle\MonologBundle\DependencyInjection\Compiler;
 
+
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -18,10 +19,12 @@ use Symfony\Component\DependencyInjection\Definition;
 use Monolog\Logger;
 
 /**
- * Adds the DebugHandler when the profiler is enabled.
+ * Adds the DebugHandler when the profiler is enabled and kernel.debug is true.
  *
  * @author Christophe Coevoet <stof@notk.org>
  * @author Jordi Boggiano <j.boggiano@seld.be>
+ *
+ * @deprecated since version 2.12, to be removed in 4.0. Use AddDebugLogProcessorPass in FrameworkBundle instead.
  */
 class DebugHandlerPass implements CompilerPassInterface
 {
@@ -29,12 +32,21 @@ class DebugHandlerPass implements CompilerPassInterface
 
     public function __construct(LoggerChannelPass $channelPass)
     {
+        // Trigger the deprecation only when using a Symfony version supporting the new feature (i.e. 3.2+)
+        if (class_exists('Symfony\Bridge\Monolog\Processor\DebugProcessor') && class_exists('Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\AddDebugLogProcessorPass')) {
+            @trigger_error('The '.__CLASS__.' class is deprecated since version 2.12 and will be removed in 4.0. Use AddDebugLogProcessorPass in FrameworkBundle instead.', E_USER_DEPRECATED);
+        }
+
         $this->channelPass = $channelPass;
     }
 
     public function process(ContainerBuilder $container)
     {
         if (!$container->hasDefinition('profiler')) {
+            return;
+        }
+
+        if (!$container->getParameter('kernel.debug')) {
             return;
         }
 

@@ -19,7 +19,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\RedirectController;
 use Symfony\Bundle\FrameworkBundle\Tests\TestCase;
 
 /**
- * @author Marcin Sikon<marcin.sikon@gmail.com>
+ * @author Marcin Sikon <marcin.sikon@gmail.com>
  */
 class RedirectControllerTest extends TestCase
 {
@@ -66,14 +66,14 @@ class RedirectControllerTest extends TestCase
 
         $request->attributes = new ParameterBag($attributes);
 
-        $router = $this->getMock('Symfony\Component\Routing\RouterInterface');
+        $router = $this->getMockBuilder('Symfony\Component\Routing\RouterInterface')->getMock();
         $router
             ->expects($this->once())
             ->method('generate')
             ->with($this->equalTo($route), $this->equalTo($expectedAttributes))
             ->will($this->returnValue($url));
 
-        $container = $this->getMock('Symfony\Component\DependencyInjection\ContainerInterface');
+        $container = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')->getMock();
 
         $container
             ->expects($this->once())
@@ -155,30 +155,30 @@ class RedirectControllerTest extends TestCase
     {
         return array(
             // Standard ports
-            array('http',  null, null,  'http',  80,   ""),
-            array('http',  80,   null,  'http',  80,   ""),
-            array('https', null, null,  'http',  80,   ""),
-            array('https', 80,   null,  'http',  80,   ""),
+            array('http',  null, null,  'http',  80,   ''),
+            array('http',  80,   null,  'http',  80,   ''),
+            array('https', null, null,  'http',  80,   ''),
+            array('https', 80,   null,  'http',  80,   ''),
 
-            array('http',  null,  null, 'https', 443,  ""),
-            array('http',  null,  443,  'https', 443,  ""),
-            array('https', null,  null, 'https', 443,  ""),
-            array('https', null,  443,  'https', 443,  ""),
+            array('http',  null,  null, 'https', 443,  ''),
+            array('http',  null,  443,  'https', 443,  ''),
+            array('https', null,  null, 'https', 443,  ''),
+            array('https', null,  443,  'https', 443,  ''),
 
             // Non-standard ports
-            array('http',  null,  null, 'http',  8080, ":8080"),
-            array('http',  4080,  null, 'http',  8080, ":4080"),
-            array('http',  80,    null, 'http',  8080, ""),
-            array('https', null,  null, 'http',  8080, ""),
-            array('https', null,  8443, 'http',  8080, ":8443"),
-            array('https', null,  443,  'http',  8080, ""),
+            array('http',  null,  null, 'http',  8080, ':8080'),
+            array('http',  4080,  null, 'http',  8080, ':4080'),
+            array('http',  80,    null, 'http',  8080, ''),
+            array('https', null,  null, 'http',  8080, ''),
+            array('https', null,  8443, 'http',  8080, ':8443'),
+            array('https', null,  443,  'http',  8080, ''),
 
-            array('https', null,  null, 'https', 8443, ":8443"),
-            array('https', null,  4443, 'https', 8443, ":4443"),
-            array('https', null,  443,  'https', 8443, ""),
-            array('http',  null,  null, 'https', 8443, ""),
-            array('http',  8080,  4443, 'https', 8443, ":8080"),
-            array('http',  80,    4443, 'https', 8443, ""),
+            array('https', null,  null, 'https', 8443, ':8443'),
+            array('https', null,  4443, 'https', 8443, ':4443'),
+            array('https', null,  443,  'https', 8443, ''),
+            array('http',  null,  null, 'https', 8443, ''),
+            array('http',  8080,  4443, 'https', 8443, ':8080'),
+            array('http',  80,    4443, 'https', 8443, ''),
         );
     }
 
@@ -230,7 +230,7 @@ class RedirectControllerTest extends TestCase
 
     private function createRequestObject($scheme, $host, $port, $baseUrl, $queryString = '')
     {
-        $request = $this->getMock('Symfony\Component\HttpFoundation\Request');
+        $request = $this->getMockBuilder('Symfony\Component\HttpFoundation\Request')->getMock();
         $request
             ->expects($this->any())
             ->method('getScheme')
@@ -257,7 +257,7 @@ class RedirectControllerTest extends TestCase
 
     private function createRedirectController($httpPort = null, $httpsPort = null)
     {
-        $container = $this->getMock('Symfony\Component\DependencyInjection\ContainerInterface');
+        $container = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')->getMock();
 
         if (null !== $httpPort) {
             $container
@@ -290,7 +290,7 @@ class RedirectControllerTest extends TestCase
         return $controller;
     }
 
-    public function assertRedirectUrl(Response $returnResponse, $expectedUrl)
+    private function assertRedirectUrl(Response $returnResponse, $expectedUrl)
     {
         $this->assertTrue($returnResponse->isRedirect($expectedUrl), "Expected: $expectedUrl\nGot:      ".$returnResponse->headers->get('Location'));
     }

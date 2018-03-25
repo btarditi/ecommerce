@@ -1,4 +1,5 @@
 <?php
+
 namespace Symfony\Component\DependencyInjection\Dump;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -10,16 +11,14 @@ use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 
 /**
- * Container
- *
  * This class has been auto-generated
  * by the Symfony Dependency Injection Component.
  */
 class Container extends AbstractContainer
 {
-    /**
-     * Constructor.
-     */
+    private $parameters;
+    private $targetDirs = array();
+
     public function __construct()
     {
         parent::__construct();

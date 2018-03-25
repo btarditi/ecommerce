@@ -16,29 +16,10 @@ namespace Symfony\Bridge\Twig\NodeVisitor;
  */
 class Scope
 {
-    /**
-     * @var Scope|null
-     */
     private $parent;
-
-    /**
-     * @var Scope[]
-     */
-    private $children;
-
-    /**
-     * @var array
-     */
     private $data = array();
-
-    /**
-     * @var bool
-     */
     private $left = false;
 
-    /**
-     * @param Scope $parent
-     */
     public function __construct(Scope $parent = null)
     {
         $this->parent = $parent;
@@ -47,20 +28,17 @@ class Scope
     /**
      * Opens a new child scope.
      *
-     * @return Scope
+     * @return self
      */
     public function enter()
     {
-        $child = new self($this);
-        $this->children[] = $child;
-
-        return $child;
+        return new self($this);
     }
 
     /**
      * Closes current scope and returns parent one.
      *
-     * @return Scope|null
+     * @return self|null
      */
     public function leave()
     {
@@ -75,9 +53,9 @@ class Scope
      * @param string $key
      * @param mixed  $value
      *
-     * @throws \LogicException
+     * @return $this
      *
-     * @return Scope Current scope
+     * @throws \LogicException
      */
     public function set($key, $value)
     {

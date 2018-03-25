@@ -34,18 +34,60 @@ class ComparisonTest_Class
  */
 abstract class AbstractComparisonValidatorTestCase extends AbstractConstraintValidatorTest
 {
-    /**
-     * @expectedException \Symfony\Component\Validator\Exception\ConstraintDefinitionException
-     */
-    public function testThrowsConstraintExceptionIfNoValueOrProperty()
+    protected static function addPhp5Dot5Comparisons(array $comparisons)
     {
-        $comparison = $this->createConstraint(array());
+        if (\PHP_VERSION_ID < 50500) {
+            return $comparisons;
+        }
 
-        $this->validator->validate('some value', $comparison);
+        $result = $comparisons;
+
+        // Duplicate all tests involving DateTime objects to be tested with
+        // DateTimeImmutable objects as well
+        foreach ($comparisons as $comparison) {
+            $add = false;
+
+            foreach ($comparison as $i => $value) {
+                if ($value instanceof \DateTime) {
+                    $comparison[$i] = new \DateTimeImmutable(
+                        $value->format('Y-m-d H:i:s.u e'),
+                        $value->getTimezone()
+                    );
+                    $add = true;
+                } elseif ('DateTime' === $value) {
+                    $comparison[$i] = 'DateTimeImmutable';
+                    $add = true;
+                }
+            }
+
+            if ($add) {
+                $result[] = $comparison;
+            }
+        }
+
+        return $result;
+    }
+
+    public function provideInvalidConstraintOptions()
+    {
+        return array(
+            array(null),
+            array(array()),
+        );
     }
 
     /**
-     * @dataProvider provideValidComparisons
+     * @dataProvider provideInvalidConstraintOptions
+     * @expectedException \Symfony\Component\Validator\Exception\ConstraintDefinitionException
+     */
+    public function testThrowsConstraintExceptionIfNoValueOrProperty($options)
+    {
+        $this->createConstraint($options);
+    }
+
+    /**
+     * @dataProvider provideAllValidComparisons
+     *
      * @param mixed $dirtyValue
      * @param mixed $comparisonValue
      */
@@ -61,10 +103,27 @@ abstract class AbstractComparisonValidatorTestCase extends AbstractConstraintVal
     /**
      * @return array
      */
+    public function provideAllValidComparisons()
+    {
+        // The provider runs before setUp(), so we need to manually fix
+        // the default timezone
+        $this->setDefaultTimezone('UTC');
+
+        $comparisons = self::addPhp5Dot5Comparisons($this->provideValidComparisons());
+
+        $this->restoreDefaultTimezone();
+
+        return $comparisons;
+    }
+
+    /**
+     * @return array
+     */
     abstract public function provideValidComparisons();
 
     /**
-     * @dataProvider provideInvalidComparisons
+     * @dataProvider provideAllInvalidComparisons
+     *
      * @param mixed  $dirtyValue
      * @param mixed  $dirtyValueAsString
      * @param mixed  $comparedValue
@@ -75,8 +134,12 @@ abstract class AbstractComparisonValidatorTestCase extends AbstractConstraintVal
     {
         // Conversion of dates to string differs between ICU versions
         // Make sure we have the correct version loaded
-        if ($dirtyValue instanceof \DateTime) {
-            IntlTestHelper::requireIntl($this);
+        if ($dirtyValue instanceof \DateTime || $dirtyValue instanceof \DateTimeInterface) {
+            IntlTestHelper::requireIntl($this, '57.1');
+
+            if (\PHP_VERSION_ID < 50304 && !(extension_loaded('intl') && method_exists('IntlDateFormatter', 'setTimeZone'))) {
+                $this->markTestSkipped('Intl supports formatting DateTime objects since 5.3.4');
+            }
         }
 
         $constraint = $this->createConstraint(array('value' => $comparedValue));
@@ -88,7 +151,24 @@ abstract class AbstractComparisonValidatorTestCase extends AbstractConstraintVal
             ->setParameter('{{ value }}', $dirtyValueAsString)
             ->setParameter('{{ compared_value }}', $comparedValueString)
             ->setParameter('{{ compared_value_type }}', $comparedValueType)
+            ->setCode($this->getErrorCode())
             ->assertRaised();
+    }
+
+    /**
+     * @return array
+     */
+    public function provideAllInvalidComparisons()
+    {
+        // The provider runs before setUp(), so we need to manually fix
+        // the default timezone
+        $this->setDefaultTimezone('UTC');
+
+        $comparisons = self::addPhp5Dot5Comparisons($this->provideInvalidComparisons());
+
+        $this->restoreDefaultTimezone();
+
+        return $comparisons;
     }
 
     /**
@@ -97,8 +177,16 @@ abstract class AbstractComparisonValidatorTestCase extends AbstractConstraintVal
     abstract public function provideInvalidComparisons();
 
     /**
-     * @param  array      $options Options for the constraint
+     * @param array|null $options Options for the constraint
+     *
      * @return Constraint
      */
-    abstract protected function createConstraint(array $options);
+    abstract protected function createConstraint(array $options = null);
+
+    /**
+     * @return string|null
+     */
+    protected function getErrorCode()
+    {
+    }
 }

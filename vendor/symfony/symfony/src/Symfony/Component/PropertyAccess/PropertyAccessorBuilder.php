@@ -12,26 +12,19 @@
 namespace Symfony\Component\PropertyAccess;
 
 /**
- * A configurable builder for PropertyAccessorInterface objects.
+ * A configurable builder to create a PropertyAccessor.
  *
  * @author Jérémie Augustin <jeremie.augustin@pixel-cookers.com>
  */
 class PropertyAccessorBuilder
 {
-    /**
-     * @var bool
-     */
     private $magicCall = false;
-
-    /**
-     * @var bool
-     */
     private $throwExceptionOnInvalidIndex = false;
 
     /**
      * Enables the use of "__call" by the PropertyAccessor.
      *
-     * @return PropertyAccessorBuilder The builder object
+     * @return $this
      */
     public function enableMagicCall()
     {
@@ -43,7 +36,7 @@ class PropertyAccessorBuilder
     /**
      * Disables the use of "__call" by the PropertyAccessor.
      *
-     * @return PropertyAccessorBuilder The builder object
+     * @return $this
      */
     public function disableMagicCall()
     {
@@ -53,7 +46,7 @@ class PropertyAccessorBuilder
     }
 
     /**
-     * @return bool true if the use of "__call" by the PropertyAccessor is enabled
+     * @return bool whether the use of "__call" by the PropertyAccessor is enabled
      */
     public function isMagicCallEnabled()
     {
@@ -61,9 +54,12 @@ class PropertyAccessorBuilder
     }
 
     /**
-     * Enables exceptions in read context for array by PropertyAccessor
+     * Enables exceptions when reading a non-existing index.
      *
-     * @return PropertyAccessorBuilder The builder object
+     * This has no influence on writing non-existing indices with PropertyAccessorInterface::setValue()
+     * which are always created on-the-fly.
+     *
+     * @return $this
      */
     public function enableExceptionOnInvalidIndex()
     {
@@ -73,9 +69,11 @@ class PropertyAccessorBuilder
     }
 
     /**
-     * Disables exceptions in read context for array by PropertyAccessor
+     * Disables exceptions when reading a non-existing index.
      *
-     * @return PropertyAccessorBuilder The builder object
+     * Instead, null is returned when calling PropertyAccessorInterface::getValue() on a non-existing index.
+     *
+     * @return $this
      */
     public function disableExceptionOnInvalidIndex()
     {
@@ -85,7 +83,7 @@ class PropertyAccessorBuilder
     }
 
     /**
-     * @return bool    true is exceptions in read context for array is enabled
+     * @return bool whether an exception is thrown or null is returned when reading a non-existing index
      */
     public function isExceptionOnInvalidIndexEnabled()
     {
@@ -93,9 +91,9 @@ class PropertyAccessorBuilder
     }
 
     /**
-     * Builds and returns a new propertyAccessor object.
+     * Builds and returns a new PropertyAccessor object.
      *
-     * @return PropertyAccessorInterface The built propertyAccessor
+     * @return PropertyAccessorInterface The built PropertyAccessor
      */
     public function getPropertyAccessor()
     {

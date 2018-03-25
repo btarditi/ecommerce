@@ -17,16 +17,12 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 /**
  * Adapter for using the new token generator with the old interface.
  *
- * @since  2.4
  * @author Bernhard Schussek <bschussek@gmail.com>
  *
- * @deprecated Deprecated since version 2.4, to be removed in Symfony 3.0.
+ * @deprecated since version 2.4, to be removed in 3.0.
  */
 class CsrfTokenManagerAdapter implements CsrfProviderInterface
 {
-    /**
-     * @var CsrfTokenManagerInterface
-     */
     private $tokenManager;
 
     public function __construct(CsrfTokenManagerInterface $tokenManager)
@@ -34,8 +30,12 @@ class CsrfTokenManagerAdapter implements CsrfProviderInterface
         $this->tokenManager = $tokenManager;
     }
 
-    public function getTokenManager()
+    public function getTokenManager($triggerDeprecationError = true)
     {
+        if ($triggerDeprecationError) {
+            @trigger_error('The '.__METHOD__.' method is deprecated since Symfony 2.4 and will be removed in version 3.0. Use the Symfony\Component\Security\Csrf\CsrfTokenManager class instead.', E_USER_DEPRECATED);
+        }
+
         return $this->tokenManager;
     }
 
@@ -44,6 +44,8 @@ class CsrfTokenManagerAdapter implements CsrfProviderInterface
      */
     public function generateCsrfToken($intention)
     {
+        @trigger_error('The '.__METHOD__.' method is deprecated since Symfony 2.4 and will be removed in version 3.0. Use the Symfony\Component\Security\Csrf\CsrfTokenManager class instead.', E_USER_DEPRECATED);
+
         return $this->tokenManager->getToken($intention)->getValue();
     }
 
@@ -52,6 +54,8 @@ class CsrfTokenManagerAdapter implements CsrfProviderInterface
      */
     public function isCsrfTokenValid($intention, $token)
     {
+        @trigger_error('The '.__METHOD__.' method is deprecated since Symfony 2.4 and will be removed in version 3.0. Use the Symfony\Component\Security\Csrf\CsrfTokenManager class instead.', E_USER_DEPRECATED);
+
         return $this->tokenManager->isTokenValid(new CsrfToken($intention, $token));
     }
 }

@@ -11,19 +11,19 @@
 
 namespace Symfony\Bridge\Swiftmailer\DataCollector;
 
+@trigger_error('The '.__NAMESPACE__.'\MessageDataCollector class is deprecated since Symfony 2.4 and will be removed in 3.0. Use the Symfony\Bundle\SwiftmailerBundle\DataCollector\MessageDataCollector class from SwiftmailerBundle instead. Require symfony/swiftmailer-bundle package to download SwiftmailerBundle with Composer.', E_USER_DEPRECATED);
+
 use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * MessageDataCollector.
- *
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Clément JOBEILI <clement.jobeili@gmail.com>
  *
- * @deprecated Deprecated since version 2.4, to be removed in 3.0. Use
- *             MessageDataCollector of SwiftmailerBundle instead.
+ * @deprecated since version 2.4, to be removed in 3.0.
+ *             Use the MessageDataCollector from SwiftmailerBundle instead.
  */
 class MessageDataCollector extends DataCollector
 {
@@ -31,8 +31,6 @@ class MessageDataCollector extends DataCollector
     private $isSpool;
 
     /**
-     * Constructor.
-     *
      * We don't inject the message logger and mailer here
      * to avoid the creation of these objects when no emails are sent.
      *
@@ -53,10 +51,10 @@ class MessageDataCollector extends DataCollector
         // only collect when Swiftmailer has already been initialized
         if (class_exists('Swift_Mailer', false)) {
             $logger = $this->container->get('swiftmailer.plugin.messagelogger');
-            $this->data['messages']     = $logger->getMessages();
+            $this->data['messages'] = $logger->getMessages();
             $this->data['messageCount'] = $logger->countMessages();
         } else {
-            $this->data['messages']     = array();
+            $this->data['messages'] = array();
             $this->data['messageCount'] = 0;
         }
 

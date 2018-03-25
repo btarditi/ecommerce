@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Validator;
 
+@trigger_error('The '.__NAMESPACE__.'\ExecutionContext class is deprecated since Symfony 2.5 and will be removed in 3.0. Use the Symfony\Component\Validator\Context\ExecutionContext class instead.', E_USER_DEPRECATED);
+
 use Symfony\Component\Translation\TranslatorInterface;
 
 /**
@@ -20,54 +22,30 @@ use Symfony\Component\Translation\TranslatorInterface;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Bernhard Schussek <bschussek@gmail.com>
+ *
+ * @deprecated since version 2.5, to be removed in 3.0.
+ *             Use {@link Context\ExecutionContext} instead.
  */
 class ExecutionContext implements ExecutionContextInterface
 {
-    /**
-     * @var GlobalExecutionContextInterface
-     */
     private $globalContext;
-
-    /**
-     * @var TranslatorInterface
-     */
     private $translator;
-
-    /**
-     * @var null|string
-     */
     private $translationDomain;
-
-    /**
-     * @var MetadataInterface
-     */
     private $metadata;
-
-    /**
-     * @var mixed
-     */
     private $value;
-
-    /**
-     * @var string
-     */
     private $group;
-
-    /**
-     * @var string
-     */
     private $propertyPath;
 
     /**
      * Creates a new execution context.
      *
-     * @param GlobalExecutionContextInterface $globalContext     The global context storing node-independent state.
-     * @param TranslatorInterface             $translator        The translator for translating violation messages.
-     * @param null|string                     $translationDomain The domain of the validation messages.
-     * @param MetadataInterface               $metadata          The metadata of the validated node.
-     * @param mixed                           $value             The value of the validated node.
-     * @param string                          $group             The current validation group.
-     * @param string                          $propertyPath      The property path to the current node.
+     * @param GlobalExecutionContextInterface $globalContext     The global context storing node-independent state
+     * @param TranslatorInterface             $translator        The translator for translating violation messages
+     * @param null|string                     $translationDomain The domain of the validation messages
+     * @param MetadataInterface               $metadata          The metadata of the validated node
+     * @param mixed                           $value             The value of the validated node
+     * @param string                          $group             The current validation group
+     * @param string                          $propertyPath      The property path to the current node
      */
     public function __construct(GlobalExecutionContextInterface $globalContext, TranslatorInterface $translator, $translationDomain = null, MetadataInterface $metadata = null, $value = null, $group = null, $propertyPath = '')
     {
@@ -87,13 +65,13 @@ class ExecutionContext implements ExecutionContextInterface
     /**
      * {@inheritdoc}
      */
-    public function addViolation($message, array $params = array(), $invalidValue = null, $pluralization = null, $code = null)
+    public function addViolation($message, array $params = array(), $invalidValue = null, $plural = null, $code = null)
     {
-        if (null === $pluralization) {
+        if (null === $plural) {
             $translatedMessage = $this->translator->trans($message, $params, $this->translationDomain);
         } else {
             try {
-                $translatedMessage = $this->translator->transChoice($message, $pluralization, $params, $this->translationDomain);
+                $translatedMessage = $this->translator->transChoice($message, $plural, $params, $this->translationDomain);
             } catch (\InvalidArgumentException $e) {
                 $translatedMessage = $this->translator->trans($message, $params, $this->translationDomain);
             }
@@ -107,7 +85,7 @@ class ExecutionContext implements ExecutionContextInterface
             $this->propertyPath,
             // check using func_num_args() to allow passing null values
             func_num_args() >= 3 ? $invalidValue : $this->value,
-            $pluralization,
+            $plural,
             $code
         ));
     }
@@ -115,19 +93,19 @@ class ExecutionContext implements ExecutionContextInterface
     /**
      * {@inheritdoc}
      */
-    public function addViolationAt($subPath, $message, array $params = array(), $invalidValue = null, $pluralization = null, $code = null)
+    public function addViolationAt($subPath, $message, array $parameters = array(), $invalidValue = null, $plural = null, $code = null)
     {
         $this->globalContext->getViolations()->add(new ConstraintViolation(
-            null === $pluralization
-                ? $this->translator->trans($message, $params, $this->translationDomain)
-                : $this->translator->transChoice($message, $pluralization, $params, $this->translationDomain),
+            null === $plural
+                ? $this->translator->trans($message, $parameters, $this->translationDomain)
+                : $this->translator->transChoice($message, $plural, $parameters, $this->translationDomain),
             $message,
-            $params,
+            $parameters,
             $this->globalContext->getRoot(),
             $this->getPropertyPath($subPath),
             // check using func_num_args() to allow passing null values
             func_num_args() >= 4 ? $invalidValue : $this->value,
-            $pluralization,
+            $plural,
             $code
         ));
     }
@@ -219,8 +197,9 @@ class ExecutionContext implements ExecutionContextInterface
     {
         $propertyPath = $this->getPropertyPath($subPath);
 
+        $visitor = $this->globalContext->getVisitor();
         foreach ($this->resolveGroups($groups) as $group) {
-            $this->globalContext->getVisitor()->validate($value, $group, $propertyPath, $traverse, $deep);
+            $visitor->validate($value, $group, $propertyPath, $traverse, $deep);
         }
     }
 
@@ -261,8 +240,8 @@ class ExecutionContext implements ExecutionContextInterface
     /**
      * Executes the validators of the given constraints for the given value.
      *
-     * @param mixed        $value       The value to validate.
-     * @param Constraint[] $constraints The constraints to match against.
+     * @param mixed        $value       The value to validate
+     * @param Constraint[] $constraints The constraints to match against
      */
     private function executeConstraintValidators($value, array $constraints)
     {
@@ -281,7 +260,7 @@ class ExecutionContext implements ExecutionContextInterface
      *                                     is passed, an array containing the current
      *                                     group of the context is returned.
      *
-     * @return array An array of validation groups.
+     * @return array An array of validation groups
      */
     private function resolveGroups($groups)
     {

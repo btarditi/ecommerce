@@ -11,9 +11,13 @@
 
 namespace Symfony\Component\Finder\Tests\Expression;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Finder\Expression\Expression;
 
-class RegexTest extends \PHPUnit_Framework_TestCase
+/**
+ * @group legacy
+ */
+class RegexTest extends TestCase
 {
     /**
      * @dataProvider getHasFlagsData
@@ -23,7 +27,7 @@ class RegexTest extends \PHPUnit_Framework_TestCase
         $expr = new Expression($regex);
 
         $this->assertEquals($start, $expr->getRegex()->hasStartFlag());
-        $this->assertEquals($end,   $expr->getRegex()->hasEndFlag());
+        $this->assertEquals($end, $expr->getRegex()->hasEndFlag());
     }
 
     /**
@@ -34,7 +38,7 @@ class RegexTest extends \PHPUnit_Framework_TestCase
         $expr = new Expression($regex);
 
         $this->assertEquals($start, $expr->getRegex()->hasStartJoker());
-        $this->assertEquals($end,   $expr->getRegex()->hasEndJoker());
+        $this->assertEquals($end, $expr->getRegex()->hasEndJoker());
     }
 
     /**

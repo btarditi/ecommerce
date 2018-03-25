@@ -30,8 +30,6 @@ abstract class BaseDateTimeTransformer implements DataTransformerInterface
     protected $outputTimezone;
 
     /**
-     * Constructor.
-     *
      * @param string $inputTimezone  The name of the input timezone
      * @param string $outputTimezone The name of the output timezone
      *
@@ -40,11 +38,11 @@ abstract class BaseDateTimeTransformer implements DataTransformerInterface
      */
     public function __construct($inputTimezone = null, $outputTimezone = null)
     {
-        if (!is_string($inputTimezone) && null !== $inputTimezone) {
+        if (null !== $inputTimezone && !is_string($inputTimezone)) {
             throw new UnexpectedTypeException($inputTimezone, 'string');
         }
 
-        if (!is_string($outputTimezone) && null !== $outputTimezone) {
+        if (null !== $outputTimezone && !is_string($outputTimezone)) {
             throw new UnexpectedTypeException($outputTimezone, 'string');
         }
 

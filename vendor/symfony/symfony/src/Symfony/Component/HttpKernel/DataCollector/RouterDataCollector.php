@@ -31,8 +31,8 @@ class RouterDataCollector extends DataCollector
 
         $this->data = array(
             'redirect' => false,
-            'url'      => null,
-            'route'    => null,
+            'url' => null,
+            'route' => null,
         );
     }
 
@@ -60,8 +60,6 @@ class RouterDataCollector extends DataCollector
 
     /**
      * Remembers the controller associated to each request.
-     *
-     * @param FilterControllerEvent $event The filter controller event
      */
     public function onKernelController(FilterControllerEvent $event)
     {
@@ -69,7 +67,7 @@ class RouterDataCollector extends DataCollector
     }
 
     /**
-     * @return bool    Whether this request will result in a redirect
+     * @return bool Whether this request will result in a redirect
      */
     public function getRedirect()
     {

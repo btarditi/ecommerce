@@ -13,20 +13,27 @@ namespace Symfony\Component\Form\Test;
 
 use Symfony\Component\Form\FormEvent;
 
+/**
+ * @deprecated since version 2.3, to be removed in 3.0.
+ */
 class DeprecationErrorHandler
 {
     public static function handle($errorNumber, $message, $file, $line, $context)
     {
-        if ($errorNumber & E_USER_DEPRECATED) {
+        if ($errorNumber & ~E_USER_DEPRECATED) {
             return true;
         }
 
-        return \PHPUnit_Util_ErrorHandler::handleError($errorNumber, $message, $file, $line);
+        if (class_exists('PHPUnit_Util_ErrorHandler')) {
+            return \PHPUnit_Util_ErrorHandler::handleError($errorNumber, $message, $file, $line);
+        }
+
+        return \PHPUnit\Util\ErrorHandler::handleError($errorNumber, $message, $file, $line);
     }
 
     public static function handleBC($errorNumber, $message, $file, $line, $context)
     {
-        if ($errorNumber & E_USER_DEPRECATED) {
+        if ($errorNumber & ~E_USER_DEPRECATED) {
             return true;
         }
 

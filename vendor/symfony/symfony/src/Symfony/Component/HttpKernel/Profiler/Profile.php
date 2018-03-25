@@ -31,6 +31,7 @@ class Profile
     private $method;
     private $url;
     private $time;
+    private $statusCode;
 
     /**
      * @var Profile
@@ -43,8 +44,6 @@ class Profile
     private $children = array();
 
     /**
-     * Constructor.
-     *
      * @param string $token The token
      */
     public function __construct($token)
@@ -73,9 +72,7 @@ class Profile
     }
 
     /**
-     * Sets the parent token
-     *
-     * @param Profile $parent The parent Profile
+     * Sets the parent token.
      */
     public function setParent(Profile $parent)
     {
@@ -85,7 +82,7 @@ class Profile
     /**
      * Returns the parent profile.
      *
-     * @return Profile The parent profile
+     * @return self
      */
     public function getParent()
     {
@@ -155,7 +152,7 @@ class Profile
     /**
      * Returns the time.
      *
-     * @return string The time
+     * @return int The time
      */
     public function getTime()
     {
@@ -166,15 +163,34 @@ class Profile
         return $this->time;
     }
 
+    /**
+     * @param int $time The time
+     */
     public function setTime($time)
     {
         $this->time = $time;
     }
 
     /**
+     * @param int $statusCode
+     */
+    public function setStatusCode($statusCode)
+    {
+        $this->statusCode = $statusCode;
+    }
+
+    /**
+     * @return int
+     */
+    public function getStatusCode()
+    {
+        return $this->statusCode;
+    }
+
+    /**
      * Finds children profilers.
      *
-     * @return Profile[] An array of Profile
+     * @return self[]
      */
     public function getChildren()
     {
@@ -184,7 +200,7 @@ class Profile
     /**
      * Sets children profiler.
      *
-     * @param Profile[] $children An array of Profile
+     * @param Profile[] $children
      */
     public function setChildren(array $children)
     {
@@ -195,9 +211,7 @@ class Profile
     }
 
     /**
-     * Adds the child token
-     *
-     * @param Profile $child The child Profile
+     * Adds the child token.
      */
     public function addChild(Profile $child)
     {
@@ -248,8 +262,6 @@ class Profile
 
     /**
      * Adds a Collector.
-     *
-     * @param DataCollectorInterface $collector A DataCollectorInterface instance
      */
     public function addCollector(DataCollectorInterface $collector)
     {

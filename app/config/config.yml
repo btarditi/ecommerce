@@ -4,7 +4,7 @@ imports:
 
 framework:
     #esi:             ~
-    #translator:      { fallback: "%locale%" }
+    translator: ~
     secret:          "%secret%"
     router:
         resource: "%kernel.root_dir%/config/routing.yml"
@@ -23,6 +23,16 @@ framework:
         handler_id:  ~
     fragments:       ~
     http_method_override: true
+
+# FOSUser Configuration
+fos_user:
+            db_driver: orm # other valid values are 'mongodb', 'couchdb' and 'propel'
+            firewall_name: main
+            user_class: Utilisateurs\UtilisateursBundle\Entity\Utilisateurs
+            from_email:
+                address: "bruno@tardandco.fr"
+                sender_name: "Tardoche"
+
 
 # Twig Configuration
 twig:

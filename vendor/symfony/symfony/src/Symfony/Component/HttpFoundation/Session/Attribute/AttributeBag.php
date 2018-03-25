@@ -12,25 +12,16 @@
 namespace Symfony\Component\HttpFoundation\Session\Attribute;
 
 /**
- * This class relates to session attribute storage
+ * This class relates to session attribute storage.
  */
 class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Countable
 {
     private $name = 'attributes';
-
-    /**
-     * @var string
-     */
     private $storageKey;
 
-    /**
-     * @var array
-     */
     protected $attributes = array();
 
     /**
-     * Constructor.
-     *
      * @param string $storageKey The key used to store attributes in the session
      */
     public function __construct($storageKey = '_sf2_attributes')
@@ -148,7 +139,7 @@ class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Counta
     /**
      * Returns the number of attributes.
      *
-     * @return int     The number of attributes
+     * @return int The number of attributes
      */
     public function count()
     {

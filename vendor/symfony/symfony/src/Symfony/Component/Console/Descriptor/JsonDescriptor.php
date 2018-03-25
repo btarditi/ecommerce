@@ -21,6 +21,8 @@ use Symfony\Component\Console\Input\InputOption;
  * JSON descriptor.
  *
  * @author Jean-François Simon <contact@jfsimon.fr>
+ *
+ * @internal
  */
 class JsonDescriptor extends Descriptor
 {
@@ -79,9 +81,6 @@ class JsonDescriptor extends Descriptor
     /**
      * Writes data as json.
      *
-     * @param array $data
-     * @param array $options
-     *
      * @return array|string
      */
     private function writeData(array $data, array $options)
@@ -90,42 +89,36 @@ class JsonDescriptor extends Descriptor
     }
 
     /**
-     * @param InputArgument $argument
-     *
      * @return array
      */
     private function getInputArgumentData(InputArgument $argument)
     {
         return array(
-            'name'        => $argument->getName(),
+            'name' => $argument->getName(),
             'is_required' => $argument->isRequired(),
-            'is_array'    => $argument->isArray(),
-            'description' => $argument->getDescription(),
-            'default'     => $argument->getDefault(),
+            'is_array' => $argument->isArray(),
+            'description' => preg_replace('/\s*[\r\n]\s*/', ' ', $argument->getDescription()),
+            'default' => INF === $argument->getDefault() ? 'INF' : $argument->getDefault(),
         );
     }
 
     /**
-     * @param InputOption $option
-     *
      * @return array
      */
     private function getInputOptionData(InputOption $option)
     {
         return array(
-            'name'              => '--'.$option->getName(),
-            'shortcut'          => $option->getShortcut() ? '-'.implode('|-', explode('|', $option->getShortcut())) : '',
-            'accept_value'      => $option->acceptValue(),
+            'name' => '--'.$option->getName(),
+            'shortcut' => $option->getShortcut() ? '-'.implode('|-', explode('|', $option->getShortcut())) : '',
+            'accept_value' => $option->acceptValue(),
             'is_value_required' => $option->isValueRequired(),
-            'is_multiple'       => $option->isArray(),
-            'description'       => $option->getDescription(),
-            'default'           => $option->getDefault(),
+            'is_multiple' => $option->isArray(),
+            'description' => preg_replace('/\s*[\r\n]\s*/', ' ', $option->getDescription()),
+            'default' => INF === $option->getDefault() ? 'INF' : $option->getDefault(),
         );
     }
 
     /**
-     * @param InputDefinition $definition
-     *
      * @return array
      */
     private function getInputDefinitionData(InputDefinition $definition)
@@ -144,8 +137,6 @@ class JsonDescriptor extends Descriptor
     }
 
     /**
-     * @param Command $command
-     *
      * @return array
      */
     private function getCommandData(Command $command)
@@ -154,12 +145,11 @@ class JsonDescriptor extends Descriptor
         $command->mergeApplicationDefinition(false);
 
         return array(
-            'name'        => $command->getName(),
-            'usage'       => $command->getSynopsis(),
+            'name' => $command->getName(),
+            'usage' => array_merge(array($command->getSynopsis()), $command->getUsages(), $command->getAliases()),
             'description' => $command->getDescription(),
-            'help'        => $command->getProcessedHelp(),
-            'aliases'     => $command->getAliases(),
-            'definition'  => $this->getInputDefinitionData($command->getNativeDefinition()),
+            'help' => $command->getProcessedHelp(),
+            'definition' => $this->getInputDefinitionData($command->getNativeDefinition()),
         );
     }
 }

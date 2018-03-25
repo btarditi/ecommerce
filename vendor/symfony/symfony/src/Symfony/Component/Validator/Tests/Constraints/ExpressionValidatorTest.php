@@ -15,26 +15,49 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Validator\Constraints\Expression;
 use Symfony\Component\Validator\Constraints\ExpressionValidator;
 use Symfony\Component\Validator\Tests\Fixtures\Entity;
+use Symfony\Component\Validator\Tests\Fixtures\ToString;
+use Symfony\Component\Validator\Validation;
 
 class ExpressionValidatorTest extends AbstractConstraintValidatorTest
 {
+    protected function getApiVersion()
+    {
+        return Validation::API_VERSION_2_5;
+    }
+
     protected function createValidator()
     {
         return new ExpressionValidator(PropertyAccess::createPropertyAccessor());
     }
 
-    public function testNullIsValid()
+    public function testExpressionIsEvaluatedWithNullValue()
     {
-        $this->validator->validate(null, new Expression('value == 1'));
+        $constraint = new Expression(array(
+            'expression' => 'false',
+            'message' => 'myMessage',
+        ));
 
-        $this->assertNoViolation();
+        $this->validator->validate(null, $constraint);
+
+        $this->buildViolation('myMessage')
+            ->setParameter('{{ value }}', 'null')
+            ->setCode(Expression::EXPRESSION_FAILED_ERROR)
+            ->assertRaised();
     }
 
-    public function testEmptyStringIsValid()
+    public function testExpressionIsEvaluatedWithEmptyStringValue()
     {
-        $this->validator->validate('', new Expression('value == 1'));
+        $constraint = new Expression(array(
+            'expression' => 'false',
+            'message' => 'myMessage',
+        ));
 
-        $this->assertNoViolation();
+        $this->validator->validate('', $constraint);
+
+        $this->buildViolation('myMessage')
+            ->setParameter('{{ value }}', '""')
+            ->setCode(Expression::EXPRESSION_FAILED_ERROR)
+            ->assertRaised();
     }
 
     public function testSucceedingExpressionAtObjectLevel()
@@ -65,7 +88,44 @@ class ExpressionValidatorTest extends AbstractConstraintValidatorTest
 
         $this->validator->validate($object, $constraint);
 
-        $this->assertViolation('myMessage');
+        $this->buildViolation('myMessage')
+            ->setParameter('{{ value }}', 'object')
+            ->setCode(Expression::EXPRESSION_FAILED_ERROR)
+            ->assertRaised();
+    }
+
+    public function testSucceedingExpressionAtObjectLevelWithToString()
+    {
+        $constraint = new Expression('this.data == 1');
+
+        $object = new ToString();
+        $object->data = '1';
+
+        $this->setObject($object);
+
+        $this->validator->validate($object, $constraint);
+
+        $this->assertNoViolation();
+    }
+
+    public function testFailingExpressionAtObjectLevelWithToString()
+    {
+        $constraint = new Expression(array(
+            'expression' => 'this.data == 1',
+            'message' => 'myMessage',
+        ));
+
+        $object = new ToString();
+        $object->data = '2';
+
+        $this->setObject($object);
+
+        $this->validator->validate($object, $constraint);
+
+        $this->buildViolation('myMessage')
+            ->setParameter('{{ value }}', 'toString')
+            ->setCode(Expression::EXPRESSION_FAILED_ERROR)
+            ->assertRaised();
     }
 
     public function testSucceedingExpressionAtPropertyLevel()
@@ -100,7 +160,11 @@ class ExpressionValidatorTest extends AbstractConstraintValidatorTest
 
         $this->validator->validate('2', $constraint);
 
-        $this->assertViolation('myMessage', array(), 'data');
+        $this->buildViolation('myMessage')
+            ->atPath('data')
+            ->setParameter('{{ value }}', '"2"')
+            ->setCode(Expression::EXPRESSION_FAILED_ERROR)
+            ->assertRaised();
     }
 
     public function testSucceedingExpressionAtNestedPropertyLevel()
@@ -141,12 +205,16 @@ class ExpressionValidatorTest extends AbstractConstraintValidatorTest
 
         $this->validator->validate('2', $constraint);
 
-        $this->assertViolation('myMessage', array(), 'reference.data');
+        $this->buildViolation('myMessage')
+            ->atPath('reference.data')
+            ->setParameter('{{ value }}', '"2"')
+            ->setCode(Expression::EXPRESSION_FAILED_ERROR)
+            ->assertRaised();
     }
 
     /**
      * When validatePropertyValue() is called with a class name
-     * https://github.com/symfony/symfony/pull/11498
+     * https://github.com/symfony/symfony/pull/11498.
      */
     public function testSucceedingExpressionAtPropertyLevelWithoutRoot()
     {
@@ -163,7 +231,7 @@ class ExpressionValidatorTest extends AbstractConstraintValidatorTest
 
     /**
      * When validatePropertyValue() is called with a class name
-     * https://github.com/symfony/symfony/pull/11498
+     * https://github.com/symfony/symfony/pull/11498.
      */
     public function testFailingExpressionAtPropertyLevelWithoutRoot()
     {
@@ -178,6 +246,34 @@ class ExpressionValidatorTest extends AbstractConstraintValidatorTest
 
         $this->validator->validate('2', $constraint);
 
-        $this->assertViolation('myMessage', array(), '');
+        $this->buildViolation('myMessage')
+            ->atPath('')
+            ->setParameter('{{ value }}', '"2"')
+            ->setCode(Expression::EXPRESSION_FAILED_ERROR)
+            ->assertRaised();
+    }
+
+    public function testExpressionLanguageUsage()
+    {
+        $constraint = new Expression(array(
+            'expression' => 'false',
+        ));
+
+        $expressionLanguage = $this->getMockBuilder('Symfony\Component\ExpressionLanguage\ExpressionLanguage')->getMock();
+
+        $used = false;
+
+        $expressionLanguage->method('evaluate')
+            ->will($this->returnCallback(function () use (&$used) {
+                $used = true;
+
+                return true;
+            }));
+
+        $validator = new ExpressionValidator(null, $expressionLanguage);
+        $validator->initialize($this->createContext());
+        $validator->validate(null, $constraint);
+
+        $this->assertTrue($used, 'Failed asserting that custom ExpressionLanguage instance is used.');
     }
 }

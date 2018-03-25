@@ -14,21 +14,16 @@ namespace Symfony\Component\CssSelector\Node;
 /**
  * Represents a "<namespace>|<element>" node.
  *
- * This component is a port of the Python cssselector library,
+ * This component is a port of the Python cssselect library,
  * which is copyright Ian Bicking, @see https://github.com/SimonSapin/cssselect.
  *
  * @author Jean-François Simon <jeanfrancois.simon@sensiolabs.com>
+ *
+ * @internal
  */
 class ElementNode extends AbstractNode
 {
-    /**
-     * @var string|null
-     */
     private $namespace;
-
-    /**
-     * @var string|null
-     */
     private $element;
 
     /**

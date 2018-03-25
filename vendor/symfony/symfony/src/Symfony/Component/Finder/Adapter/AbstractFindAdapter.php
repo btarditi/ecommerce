@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Finder\Adapter;
 
+@trigger_error('The '.__NAMESPACE__.'\AbstractFindAdapter class is deprecated since Symfony 2.8 and will be removed in 3.0. Use directly the Finder class instead.', E_USER_DEPRECATED);
+
 use Symfony\Component\Finder\Exception\AccessDeniedException;
 use Symfony\Component\Finder\Iterator;
 use Symfony\Component\Finder\Shell\Shell;
@@ -23,17 +25,13 @@ use Symfony\Component\Finder\Comparator\DateComparator;
  * Shell engine implementation using GNU find command.
  *
  * @author Jean-François Simon <contact@jfsimon.fr>
+ *
+ * @deprecated since 2.8, to be removed in 3.0. Use Finder instead.
  */
 abstract class AbstractFindAdapter extends AbstractAdapter
 {
-    /**
-     * @var Shell
-     */
     protected $shell;
 
-    /**
-     * Constructor.
-     */
     public function __construct()
     {
         $this->shell = new Shell();
@@ -94,7 +92,7 @@ abstract class AbstractFindAdapter extends AbstractAdapter
         $command->setErrorHandler(
             $this->ignoreUnreadableDirs
                 // If directory is unreadable and finder is set to ignore it, `stderr` is ignored.
-                ? function ($stderr) { return; }
+                ? function ($stderr) { }
                 : function ($stderr) { throw new AccessDeniedException($stderr); }
         );
 
@@ -272,7 +270,7 @@ abstract class AbstractFindAdapter extends AbstractAdapter
         foreach ($dates as $i => $date) {
             $command->add($i > 0 ? '-and' : null);
 
-            $mins = (int) round((time()-$date->getTarget()) / 60);
+            $mins = (int) round((time() - $date->getTarget()) / 60);
 
             if (0 > $mins) {
                 // mtime is in the future

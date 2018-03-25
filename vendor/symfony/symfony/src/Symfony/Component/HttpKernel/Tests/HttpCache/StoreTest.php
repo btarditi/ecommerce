@@ -11,14 +11,19 @@
 
 namespace Symfony\Component\HttpKernel\Tests\HttpCache;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpCache\Store;
 
-class StoreTest extends \PHPUnit_Framework_TestCase
+class StoreTest extends TestCase
 {
     protected $request;
     protected $response;
+
+    /**
+     * @var Store
+     */
     protected $store;
 
     protected function setUp()
@@ -87,7 +92,7 @@ class StoreTest extends \PHPUnit_Framework_TestCase
     {
         $cacheKey = $this->storeSimpleEntry();
         $entries = $this->getStoreMetadata($cacheKey);
-        list ($req, $res) = $entries[0];
+        list($req, $res) = $entries[0];
 
         $this->assertEquals('en9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08', $res['x-content-digest'][0]);
     }
@@ -168,6 +173,16 @@ class StoreTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($this->store->lookup($req2));
     }
 
+    public function testDoesNotReturnEntriesThatSlightlyVaryWithLookup()
+    {
+        $req1 = Request::create('/test', 'get', array(), array(), array(), array('HTTP_FOO' => 'Foo', 'HTTP_BAR' => 'Bar'));
+        $req2 = Request::create('/test', 'get', array(), array(), array(), array('HTTP_FOO' => 'Foo', 'HTTP_BAR' => 'Bam'));
+        $res = new Response('test', 200, array('Vary' => array('Foo', 'Bar')));
+        $this->store->write($req1, $res);
+
+        $this->assertNull($this->store->lookup($req2));
+    }
+
     public function testStoresMultipleResponsesForEachVaryCombination()
     {
         $req1 = Request::create('/test', 'get', array(), array(), array(), array('HTTP_FOO' => 'Foo', 'HTTP_BAR' => 'Bar'));
@@ -219,6 +234,33 @@ class StoreTest extends \PHPUnit_Framework_TestCase
 
         $this->store->unlock($req);
         $this->assertFalse($this->store->isLocked($req));
+    }
+
+    public function testPurgeHttps()
+    {
+        $request = Request::create('https://example.com/foo');
+        $this->store->write($request, new Response('foo'));
+
+        $this->assertNotEmpty($this->getStoreMetadata($request));
+
+        $this->assertTrue($this->store->purge('https://example.com/foo'));
+        $this->assertEmpty($this->getStoreMetadata($request));
+    }
+
+    public function testPurgeHttpAndHttps()
+    {
+        $requestHttp = Request::create('https://example.com/foo');
+        $this->store->write($requestHttp, new Response('foo'));
+
+        $requestHttps = Request::create('http://example.com/foo');
+        $this->store->write($requestHttps, new Response('foo'));
+
+        $this->assertNotEmpty($this->getStoreMetadata($requestHttp));
+        $this->assertNotEmpty($this->getStoreMetadata($requestHttps));
+
+        $this->assertTrue($this->store->purge('http://example.com/foo'));
+        $this->assertEmpty($this->getStoreMetadata($requestHttp));
+        $this->assertEmpty($this->getStoreMetadata($requestHttps));
     }
 
     protected function storeSimpleEntry($path = null, $headers = array())

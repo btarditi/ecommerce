@@ -27,20 +27,20 @@ use Symfony\Component\DependencyInjection\LazyProxy\Instantiator\InstantiatorInt
 class RuntimeInstantiator implements InstantiatorInterface
 {
     /**
-     * @var \ProxyManager\Factory\LazyLoadingValueHolderFactory
+     * @var LazyLoadingValueHolderFactory
      */
     private $factory;
 
-    /**
-     * Constructor
-     */
     public function __construct()
     {
         $config = new Configuration();
-
         $config->setGeneratorStrategy(new EvaluatingGeneratorStrategy());
 
-        $this->factory = new LazyLoadingValueHolderFactory($config);
+        if (method_exists('ProxyManager\Version', 'getVersion')) {
+            $this->factory = new LazyLoadingValueHolderFactoryV2($config);
+        } else {
+            $this->factory = new LazyLoadingValueHolderFactoryV1($config);
+        }
     }
 
     /**

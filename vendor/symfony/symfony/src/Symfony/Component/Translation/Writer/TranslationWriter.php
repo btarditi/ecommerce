@@ -21,11 +21,6 @@ use Symfony\Component\Translation\Dumper\DumperInterface;
  */
 class TranslationWriter
 {
-    /**
-     * Dumpers used for export.
-     *
-     * @var array
-     */
     private $dumpers = array();
 
     /**
@@ -37,6 +32,18 @@ class TranslationWriter
     public function addDumper($format, DumperInterface $dumper)
     {
         $this->dumpers[$format] = $dumper;
+    }
+
+    /**
+     * Disables dumper backup.
+     */
+    public function disableBackup()
+    {
+        foreach ($this->dumpers as $dumper) {
+            if (method_exists($dumper, 'setBackup')) {
+                $dumper->setBackup(false);
+            }
+        }
     }
 
     /**
@@ -66,6 +73,10 @@ class TranslationWriter
 
         // get the right dumper
         $dumper = $this->dumpers[$format];
+
+        if (isset($options['path']) && !is_dir($options['path']) && !@mkdir($options['path'], 0777, true) && !is_dir($options['path'])) {
+            throw new \RuntimeException(sprintf('Translation Writer was not able to create directory "%s"', $options['path']));
+        }
 
         // save
         $dumper->dump($catalogue, $options);

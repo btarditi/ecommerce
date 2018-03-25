@@ -5,7 +5,13 @@
          backupGlobals="false"
          colors="true"
          bootstrap="vendor/autoload.php"
+         failOnRisky="true"
+         failOnWarning="true"
 >
+    <php>
+        <ini name="error_reporting" value="-1" />
+    </php>
+
     <testsuites>
         <testsuite name="Symfony Serializer Component Test Suite">
             <directory>./Tests/</directory>
@@ -16,8 +22,8 @@
         <whitelist>
             <directory>./</directory>
             <exclude>
-                <directory>./vendor</directory>
                 <directory>./Tests</directory>
+                <directory>./vendor</directory>
             </exclude>
         </whitelist>
     </filter>

@@ -11,10 +11,11 @@
 
 namespace Symfony\Component\PropertyAccess\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 
-abstract class PropertyAccessorArrayAccessTest extends \PHPUnit_Framework_TestCase
+abstract class PropertyAccessorArrayAccessTest extends TestCase
 {
     /**
      * @var PropertyAccessor
@@ -66,5 +67,21 @@ abstract class PropertyAccessorArrayAccessTest extends \PHPUnit_Framework_TestCa
         $this->propertyAccessor->setValue($collection, $path, 'Updated');
 
         $this->assertSame('Updated', $this->propertyAccessor->getValue($collection, $path));
+    }
+
+    /**
+     * @dataProvider getValidPropertyPaths
+     */
+    public function testIsReadable($collection, $path)
+    {
+        $this->assertTrue($this->propertyAccessor->isReadable($collection, $path));
+    }
+
+    /**
+     * @dataProvider getValidPropertyPaths
+     */
+    public function testIsWritable($collection, $path)
+    {
+        $this->assertTrue($this->propertyAccessor->isWritable($collection, $path));
     }
 }

@@ -11,18 +11,19 @@
 
 namespace Symfony\Component\Finder\Exception;
 
+@trigger_error('The '.__NAMESPACE__.'\AdapterFailureException class is deprecated since Symfony 2.8 and will be removed in 3.0.', E_USER_DEPRECATED);
+
 use Symfony\Component\Finder\Adapter\AdapterInterface;
 
 /**
  * Base exception for all adapter failures.
  *
  * @author Jean-François Simon <contact@jfsimon.fr>
+ *
+ * @deprecated since 2.8, to be removed in 3.0.
  */
 class AdapterFailureException extends \RuntimeException implements ExceptionInterface
 {
-    /**
-     * @var \Symfony\Component\Finder\Adapter\AdapterInterface
-     */
     private $adapter;
 
     /**

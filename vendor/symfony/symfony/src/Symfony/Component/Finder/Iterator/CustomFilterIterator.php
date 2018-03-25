@@ -24,10 +24,8 @@ class CustomFilterIterator extends FilterIterator
     private $filters = array();
 
     /**
-     * Constructor.
-     *
-     * @param \Iterator $iterator The Iterator to filter
-     * @param array     $filters  An array of PHP callbacks
+     * @param \Iterator  $iterator The Iterator to filter
+     * @param callable[] $filters  An array of PHP callbacks
      *
      * @throws \InvalidArgumentException
      */
@@ -46,7 +44,7 @@ class CustomFilterIterator extends FilterIterator
     /**
      * Filters the iterator values.
      *
-     * @return bool    true if the value should be kept, false otherwise
+     * @return bool true if the value should be kept, false otherwise
      */
     public function accept()
     {

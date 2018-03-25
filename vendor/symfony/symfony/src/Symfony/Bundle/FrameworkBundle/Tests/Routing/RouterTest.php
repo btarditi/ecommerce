@@ -11,11 +11,12 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Tests\Routing;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 
-class RouterTest extends \PHPUnit_Framework_TestCase
+class RouterTest extends TestCase
 {
     public function testGenerateWithServiceParam()
     {
@@ -28,16 +29,18 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 '_locale' => 'en|es',
-            )
+            ), array(), '', array(), array(), '"%foo%" == "bar"'
         ));
 
         $sc = $this->getServiceContainer($routes);
         $sc->setParameter('locale', 'es');
+        $sc->setParameter('foo', 'bar');
 
         $router = new Router($sc, 'foo');
 
         $this->assertSame('/en', $router->generate('foo', array('_locale' => 'en')));
         $this->assertSame('/', $router->generate('foo', array('_locale' => 'es')));
+        $this->assertSame('"bar" == "bar"', $router->getRouteCollection()->get('foo')->getCondition());
     }
 
     public function testDefaultsPlaceholders()
@@ -47,11 +50,11 @@ class RouterTest extends \PHPUnit_Framework_TestCase
         $routes->add('foo', new Route(
             '/foo',
             array(
-                'foo'    => 'before_%parameter.foo%',
-                'bar'    => '%parameter.bar%_after',
-                'baz'    => '%%escaped%%',
-                'boo'    => array('%parameter%', '%%escaped_parameter%%', array('%bee_parameter%', 'bee')),
-                'bee'    => array('bee', 'bee'),
+                'foo' => 'before_%parameter.foo%',
+                'bar' => '%parameter.bar%_after',
+                'baz' => '%%escaped%%',
+                'boo' => array('%parameter%', '%%escaped_parameter%%', array('%bee_parameter%', 'bee')),
+                'bee' => array('bee', 'bee'),
             ),
             array(
             )
@@ -88,9 +91,9 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             array(
             ),
             array(
-                'foo'    => 'before_%parameter.foo%',
-                'bar'    => '%parameter.bar%_after',
-                'baz'    => '%%escaped%%',
+                'foo' => 'before_%parameter.foo%',
+                'bar' => '%parameter.bar%_after',
+                'baz' => '%%escaped%%',
             )
         ));
 
@@ -206,13 +209,11 @@ class RouterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param RouteCollection $routes
-     *
      * @return \Symfony\Component\DependencyInjection\Container
      */
     private function getServiceContainer(RouteCollection $routes)
     {
-        $loader = $this->getMock('Symfony\Component\Config\Loader\LoaderInterface');
+        $loader = $this->getMockBuilder('Symfony\Component\Config\Loader\LoaderInterface')->getMock();
 
         $loader
             ->expects($this->any())
@@ -220,7 +221,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($routes))
         ;
 
-        $sc = $this->getMock('Symfony\\Component\\DependencyInjection\\Container', array('get'));
+        $sc = $this->getMockBuilder('Symfony\\Component\\DependencyInjection\\Container')->setMethods(array('get'))->getMock();
 
         $sc
             ->expects($this->once())

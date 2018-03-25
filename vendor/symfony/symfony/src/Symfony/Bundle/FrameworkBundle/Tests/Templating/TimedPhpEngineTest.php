@@ -40,11 +40,11 @@ class TimedPhpEngineTest extends TestCase
     }
 
     /**
-     * @return \Symfony\Component\DependencyInjection\Container
+     * @return Container
      */
     private function getContainer()
     {
-        return $this->getMock('Symfony\Component\DependencyInjection\Container');
+        return $this->getMockBuilder('Symfony\Component\DependencyInjection\Container')->getMock();
     }
 
     /**
@@ -52,8 +52,8 @@ class TimedPhpEngineTest extends TestCase
      */
     private function getTemplateNameParser()
     {
-        $templateReference = $this->getMock('Symfony\Component\Templating\TemplateReferenceInterface');
-        $templateNameParser = $this->getMock('Symfony\Component\Templating\TemplateNameParserInterface');
+        $templateReference = $this->getMockBuilder('Symfony\Component\Templating\TemplateReferenceInterface')->getMock();
+        $templateNameParser = $this->getMockBuilder('Symfony\Component\Templating\TemplateNameParserInterface')->getMock();
         $templateNameParser->expects($this->any())
             ->method('parse')
             ->will($this->returnValue($templateReference));
@@ -62,7 +62,7 @@ class TimedPhpEngineTest extends TestCase
     }
 
     /**
-     * @return \Symfony\Bundle\FrameworkBundle\Templating\GlobalVariables
+     * @return GlobalVariables
      */
     private function getGlobalVariables()
     {
@@ -111,6 +111,6 @@ class TimedPhpEngineTest extends TestCase
      */
     private function getStopwatch()
     {
-        return $this->getMock('Symfony\Component\Stopwatch\Stopwatch');
+        return $this->getMockBuilder('Symfony\Component\Stopwatch\Stopwatch')->getMock();
     }
 }

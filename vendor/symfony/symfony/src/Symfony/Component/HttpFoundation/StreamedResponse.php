@@ -23,22 +23,17 @@ namespace Symfony\Component\HttpFoundation;
  * @see flush()
  *
  * @author Fabien Potencier <fabien@symfony.com>
- *
- * @api
  */
 class StreamedResponse extends Response
 {
     protected $callback;
     protected $streamed;
+    private $headersSent;
 
     /**
-     * Constructor.
-     *
      * @param callable|null $callback A valid PHP callback or null to set it later
      * @param int           $status   The response status code
      * @param array         $headers  An array of response headers
-     *
-     * @api
      */
     public function __construct($callback = null, $status = 200, $headers = array())
     {
@@ -48,16 +43,17 @@ class StreamedResponse extends Response
             $this->setCallback($callback);
         }
         $this->streamed = false;
+        $this->headersSent = false;
     }
 
     /**
-     * Factory method for chainability
+     * Factory method for chainability.
      *
      * @param callable|null $callback A valid PHP callback or null to set it later
      * @param int           $status   The response status code
      * @param array         $headers  An array of response headers
      *
-     * @return StreamedResponse
+     * @return static
      */
     public static function create($callback = null, $status = 200, $headers = array())
     {
@@ -81,12 +77,18 @@ class StreamedResponse extends Response
 
     /**
      * {@inheritdoc}
+     *
+     * This method only sends the headers once.
      */
-    public function prepare(Request $request)
+    public function sendHeaders()
     {
-        $this->headers->set('Cache-Control', 'no-cache');
+        if ($this->headersSent) {
+            return $this;
+        }
 
-        return parent::prepare($request);
+        $this->headersSent = true;
+
+        return parent::sendHeaders();
     }
 
     /**
@@ -97,7 +99,7 @@ class StreamedResponse extends Response
     public function sendContent()
     {
         if ($this->streamed) {
-            return;
+            return $this;
         }
 
         $this->streamed = true;
@@ -107,6 +109,8 @@ class StreamedResponse extends Response
         }
 
         call_user_func($this->callback);
+
+        return $this;
     }
 
     /**

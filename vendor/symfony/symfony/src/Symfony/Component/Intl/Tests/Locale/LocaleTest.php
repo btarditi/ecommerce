@@ -28,8 +28,8 @@ class LocaleTest extends AbstractLocaleTest
     {
         $subtags = array(
             'language' => 'pt',
-            'script'   => 'Latn',
-            'region'   => 'BR',
+            'script' => 'Latn',
+            'region' => 'BR',
         );
         $this->call('composeLocale', $subtags);
     }
@@ -153,6 +153,8 @@ class LocaleTest extends AbstractLocaleTest
     public function testSetDefaultAcceptsEn()
     {
         $this->call('setDefault', 'en');
+
+        $this->assertSame('en', $this->call('getDefault'));
     }
 
     protected function call($methodName)

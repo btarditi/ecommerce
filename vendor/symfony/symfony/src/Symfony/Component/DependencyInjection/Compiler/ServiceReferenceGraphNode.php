@@ -29,8 +29,6 @@ class ServiceReferenceGraphNode
     private $value;
 
     /**
-     * Constructor.
-     *
      * @param string $id    The node identifier
      * @param mixed  $value The node value
      */
@@ -40,21 +38,11 @@ class ServiceReferenceGraphNode
         $this->value = $value;
     }
 
-    /**
-     * Adds an in edge to this node.
-     *
-     * @param ServiceReferenceGraphEdge $edge
-     */
     public function addInEdge(ServiceReferenceGraphEdge $edge)
     {
         $this->inEdges[] = $edge;
     }
 
-    /**
-     * Adds an out edge to this node.
-     *
-     * @param ServiceReferenceGraphEdge $edge
-     */
     public function addOutEdge(ServiceReferenceGraphEdge $edge)
     {
         $this->outEdges[] = $edge;
@@ -63,7 +51,7 @@ class ServiceReferenceGraphNode
     /**
      * Checks if the value of this node is an Alias.
      *
-     * @return bool    True if the value is an Alias instance
+     * @return bool True if the value is an Alias instance
      */
     public function isAlias()
     {
@@ -73,7 +61,7 @@ class ServiceReferenceGraphNode
     /**
      * Checks if the value of this node is a Definition.
      *
-     * @return bool    True if the value is a Definition instance
+     * @return bool True if the value is a Definition instance
      */
     public function isDefinition()
     {
@@ -111,7 +99,7 @@ class ServiceReferenceGraphNode
     }
 
     /**
-     * Returns the value of this Node
+     * Returns the value of this Node.
      *
      * @return mixed The value
      */

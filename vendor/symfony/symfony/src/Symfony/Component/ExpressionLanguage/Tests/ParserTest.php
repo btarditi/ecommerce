@@ -11,15 +11,16 @@
 
 namespace Symfony\Component\ExpressionLanguage\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\ExpressionLanguage\Parser;
 use Symfony\Component\ExpressionLanguage\Lexer;
 use Symfony\Component\ExpressionLanguage\Node;
 
-class ParserTest extends \PHPUnit_Framework_TestCase
+class ParserTest extends TestCase
 {
     /**
      * @expectedException        \Symfony\Component\ExpressionLanguage\SyntaxError
-     * @expectedExceptionMessage Variable "foo" is not valid around position 1.
+     * @expectedExceptionMessage Variable "foo" is not valid around position 1 for expression `foo`.
      */
     public function testParseWithInvalidName()
     {
@@ -30,7 +31,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException        \Symfony\Component\ExpressionLanguage\SyntaxError
-     * @expectedExceptionMessage Variable "foo" is not valid around position 1.
+     * @expectedExceptionMessage Variable "foo" is not valid around position 1 for expression `foo`.
      */
     public function testParseWithZeroInNames()
     {
@@ -160,5 +161,38 @@ class ParserTest extends \PHPUnit_Framework_TestCase
     private function createGetAttrNode($node, $item, $type)
     {
         return new Node\GetAttrNode($node, new Node\ConstantNode($item), new Node\ArgumentsNode(), $type);
+    }
+
+    /**
+     * @dataProvider getInvalidPostfixData
+     * @expectedException \Symfony\Component\ExpressionLanguage\SyntaxError
+     */
+    public function testParseWithInvalidPostfixData($expr, $names = array())
+    {
+        $lexer = new Lexer();
+        $parser = new Parser(array());
+        $parser->parse($lexer->tokenize($expr), $names);
+    }
+
+    public function getInvalidPostfixData()
+    {
+        return array(
+            array(
+                'foo."#"',
+                array('foo'),
+            ),
+            array(
+                'foo."bar"',
+                array('foo'),
+            ),
+            array(
+                'foo.**',
+                array('foo'),
+            ),
+            array(
+                'foo.123',
+                array('foo'),
+            ),
+        );
     }
 }

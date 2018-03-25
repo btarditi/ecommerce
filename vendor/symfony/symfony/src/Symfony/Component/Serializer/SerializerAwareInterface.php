@@ -12,16 +12,14 @@
 namespace Symfony\Component\Serializer;
 
 /**
- * Defines the interface of encoders
+ * Defines the interface of encoders.
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
 interface SerializerAwareInterface
 {
     /**
-     * Sets the owning Serializer object
-     *
-     * @param SerializerInterface $serializer
+     * Sets the owning Serializer object.
      */
     public function setSerializer(SerializerInterface $serializer);
 }

@@ -20,7 +20,7 @@ use Symfony\Component\DependencyInjection\Exception\ScopeCrossingInjectionExcept
 use Symfony\Component\DependencyInjection\Exception\ScopeWideningInjectionException;
 
 /**
- * Checks the validity of references
+ * Checks the validity of references.
  *
  * The following checks are performed by this pass:
  * - target definitions are not abstract
@@ -33,24 +33,21 @@ class CheckReferenceValidityPass implements CompilerPassInterface
 {
     private $container;
     private $currentId;
-    private $currentDefinition;
     private $currentScope;
     private $currentScopeAncestors;
     private $currentScopeChildren;
 
     /**
      * Processes the ContainerBuilder to validate References.
-     *
-     * @param ContainerBuilder $container
      */
     public function process(ContainerBuilder $container)
     {
         $this->container = $container;
 
-        $children = $this->container->getScopeChildren();
+        $children = $this->container->getScopeChildren(false);
         $ancestors = array();
 
-        $scopes = $this->container->getScopes();
+        $scopes = $this->container->getScopes(false);
         foreach ($scopes as $name => $parent) {
             $ancestors[$name] = array($parent);
 
@@ -65,8 +62,7 @@ class CheckReferenceValidityPass implements CompilerPassInterface
             }
 
             $this->currentId = $id;
-            $this->currentDefinition = $definition;
-            $this->currentScope = $scope = $definition->getScope();
+            $this->currentScope = $scope = $definition->getScope(false);
 
             if (ContainerInterface::SCOPE_CONTAINER === $scope) {
                 $this->currentScopeChildren = array_keys($scopes);
@@ -87,7 +83,7 @@ class CheckReferenceValidityPass implements CompilerPassInterface
      *
      * @param array $arguments An array of Reference objects
      *
-     * @throws RuntimeException when there is a reference to an abstract definition.
+     * @throws RuntimeException when there is a reference to an abstract definition
      */
     private function validateReferences(array $arguments)
     {
@@ -114,9 +110,6 @@ class CheckReferenceValidityPass implements CompilerPassInterface
     /**
      * Validates the scope of a single Reference.
      *
-     * @param Reference  $reference
-     * @param Definition $definition
-     *
      * @throws ScopeWideningInjectionException when the definition references a service of a narrower scope
      * @throws ScopeCrossingInjectionException when the definition references a service of another scope hierarchy
      */
@@ -126,7 +119,7 @@ class CheckReferenceValidityPass implements CompilerPassInterface
             return;
         }
 
-        if (!$reference->isStrict()) {
+        if (!$reference->isStrict(false)) {
             return;
         }
 
@@ -134,7 +127,7 @@ class CheckReferenceValidityPass implements CompilerPassInterface
             return;
         }
 
-        if ($this->currentScope === $scope = $definition->getScope()) {
+        if ($this->currentScope === $scope = $definition->getScope(false)) {
             return;
         }
 

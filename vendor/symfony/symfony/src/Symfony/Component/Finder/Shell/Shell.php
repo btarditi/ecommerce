@@ -11,16 +11,20 @@
 
 namespace Symfony\Component\Finder\Shell;
 
+@trigger_error('The '.__NAMESPACE__.'\Shell class is deprecated since Symfony 2.8 and will be removed in 3.0.', E_USER_DEPRECATED);
+
 /**
  * @author Jean-François Simon <contact@jfsimon.fr>
+ *
+ * @deprecated since 2.8, to be removed in 3.0.
  */
 class Shell
 {
-    const TYPE_UNIX    = 1;
-    const TYPE_DARWIN  = 2;
-    const TYPE_CYGWIN  = 3;
+    const TYPE_UNIX = 1;
+    const TYPE_DARWIN = 2;
+    const TYPE_CYGWIN = 3;
     const TYPE_WINDOWS = 4;
-    const TYPE_BSD     = 5;
+    const TYPE_BSD = 5;
 
     /**
      * @var string|null

@@ -11,35 +11,26 @@
 
 namespace Symfony\Component\Serializer\Encoder;
 
+use Symfony\Component\Serializer\Exception\UnexpectedValueException;
+
 /**
- * Decodes JSON data
+ * Decodes JSON data.
  *
  * @author Sander Coolen <sander@jibber.nl>
  */
 class JsonDecode implements DecoderInterface
 {
-    /**
-     * Specifies if the returned result should be an associative array or a nested stdClass object hierarchy.
-     *
-     * @var bool
-     */
-    private $associative;
-
-    /**
-     * Specifies the recursion depth.
-     *
-     * @var int
-     */
-    private $recursionDepth;
-
-    private $lastError = JSON_ERROR_NONE;
     protected $serializer;
+
+    private $associative;
+    private $recursionDepth;
+    private $lastError = JSON_ERROR_NONE;
 
     /**
      * Constructs a new JsonDecode instance.
      *
-     * @param bool     $associative True to return the result associative array, false for a nested stdClass hierarchy
-     * @param int      $depth       Specifies the recursion depth
+     * @param bool $associative True to return the result associative array, false for a nested stdClass hierarchy
+     * @param int  $depth       Specifies the recursion depth
      */
     public function __construct($associative = false, $depth = 512)
     {
@@ -52,10 +43,14 @@ class JsonDecode implements DecoderInterface
      *
      * @return int
      *
+     * @deprecated since version 2.5, to be removed in 3.0.
+     *             The {@self decode()} method throws an exception if error found.
      * @see http://php.net/manual/en/function.json-last-error.php json_last_error
      */
     public function getLastError()
     {
+        @trigger_error('The '.__METHOD__.' method is deprecated since Symfony 2.5 and will be removed in 3.0. Catch the exception raised by the decode() method instead to get the last JSON decoding error.', E_USER_DEPRECATED);
+
         return $this->lastError;
     }
 
@@ -82,23 +77,27 @@ class JsonDecode implements DecoderInterface
      *
      * @return mixed
      *
+     * @throws UnexpectedValueException
+     *
      * @see http://php.net/json_decode json_decode
      */
     public function decode($data, $format, array $context = array())
     {
         $context = $this->resolveContext($context);
 
-        $associative    = $context['json_decode_associative'];
+        $associative = $context['json_decode_associative'];
         $recursionDepth = $context['json_decode_recursion_depth'];
-        $options        = $context['json_decode_options'];
+        $options = $context['json_decode_options'];
 
-        if (version_compare(PHP_VERSION, '5.4.0') >= 0) {
+        if (\PHP_VERSION_ID >= 50400) {
             $decodedData = json_decode($data, $associative, $recursionDepth, $options);
         } else {
             $decodedData = json_decode($data, $associative, $recursionDepth);
         }
 
-        $this->lastError = json_last_error();
+        if (JSON_ERROR_NONE !== $this->lastError = json_last_error()) {
+            throw new UnexpectedValueException(json_last_error_msg());
+        }
 
         return $decodedData;
     }
@@ -113,8 +112,6 @@ class JsonDecode implements DecoderInterface
 
     /**
      * Merges the default options of the Json Decoder with the passed context.
-     *
-     * @param array $context
      *
      * @return array
      */

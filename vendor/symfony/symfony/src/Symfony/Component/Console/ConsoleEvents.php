@@ -26,7 +26,7 @@ final class ConsoleEvents
      * The event listener method receives a Symfony\Component\Console\Event\ConsoleCommandEvent
      * instance.
      *
-     * @var string
+     * @Event
      */
     const COMMAND = 'console.command';
 
@@ -37,7 +37,7 @@ final class ConsoleEvents
      * The event listener method receives a Symfony\Component\Console\Event\ConsoleTerminateEvent
      * instance.
      *
-     * @var string
+     * @Event
      */
     const TERMINATE = 'console.terminate';
 
@@ -49,7 +49,7 @@ final class ConsoleEvents
      * a Symfony\Component\Console\Event\ConsoleExceptionEvent
      * instance.
      *
-     * @var string
+     * @Event
      */
     const EXCEPTION = 'console.exception';
 }

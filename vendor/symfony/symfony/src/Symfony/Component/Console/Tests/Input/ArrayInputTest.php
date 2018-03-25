@@ -11,12 +11,13 @@
 
 namespace Symfony\Component\Console\Tests\Input;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 
-class ArrayInputTest extends \PHPUnit_Framework_TestCase
+class ArrayInputTest extends TestCase
 {
     public function testGetFirstArgument()
     {
@@ -36,6 +37,15 @@ class ArrayInputTest extends \PHPUnit_Framework_TestCase
 
         $input = new ArrayInput(array('--foo'));
         $this->assertTrue($input->hasParameterOption('--foo'), '->hasParameterOption() returns true if an option is present in the passed parameters');
+    }
+
+    public function testGetParameterOption()
+    {
+        $input = new ArrayInput(array('name' => 'Fabien', '--foo' => 'bar'));
+        $this->assertEquals('bar', $input->getParameterOption('--foo'), '->getParameterOption() returns the option of specified name');
+
+        $input = new ArrayInput(array('Fabien', '--foo' => 'bar'));
+        $this->assertEquals('bar', $input->getParameterOption('--foo'), '->getParameterOption() returns the option of specified name');
     }
 
     public function testParseArguments()
@@ -90,7 +100,12 @@ class ArrayInputTest extends \PHPUnit_Framework_TestCase
      */
     public function testParseInvalidInput($parameters, $definition, $expectedExceptionMessage)
     {
-        $this->setExpectedException('InvalidArgumentException', $expectedExceptionMessage);
+        if (method_exists($this, 'expectException')) {
+            $this->expectException('InvalidArgumentException');
+            $this->expectExceptionMessage($expectedExceptionMessage);
+        } else {
+            $this->setExpectedException('InvalidArgumentException', $expectedExceptionMessage);
+        }
 
         new ArrayInput($parameters, $definition);
     }
@@ -125,5 +140,11 @@ class ArrayInputTest extends \PHPUnit_Framework_TestCase
     {
         $input = new ArrayInput(array('-f' => null, '-b' => 'bar', '--foo' => 'b a z', '--lala' => null, 'test' => 'Foo', 'test2' => "A\nB'C"));
         $this->assertEquals('-f -b=bar --foo='.escapeshellarg('b a z').' --lala Foo '.escapeshellarg("A\nB'C"), (string) $input);
+
+        $input = new ArrayInput(array('-b' => array('bval_1', 'bval_2'), '--f' => array('fval_1', 'fval_2')));
+        $this->assertSame('-b=bval_1 -b=bval_2 --f=fval_1 --f=fval_2', (string) $input);
+
+        $input = new ArrayInput(array('array_arg' => array('val_1', 'val_2')));
+        $this->assertSame('val_1 val_2', (string) $input);
     }
 }

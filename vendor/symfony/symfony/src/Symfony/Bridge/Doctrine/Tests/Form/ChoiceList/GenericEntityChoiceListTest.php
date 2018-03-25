@@ -11,6 +11,7 @@
 
 namespace Symfony\Bridge\Doctrine\Tests\Form\ChoiceList;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Doctrine\Test\DoctrineTestHelper;
 use Symfony\Bridge\Doctrine\Tests\Fixtures\GroupableEntity;
 use Symfony\Bridge\Doctrine\Tests\Fixtures\SingleIntIdEntity;
@@ -19,7 +20,10 @@ use Symfony\Bridge\Doctrine\Form\ChoiceList\EntityChoiceList;
 use Symfony\Component\Form\Extension\Core\View\ChoiceView;
 use Doctrine\ORM\Tools\SchemaTool;
 
-class GenericEntityChoiceListTest extends \PHPUnit_Framework_TestCase
+/**
+ * @group legacy
+ */
+class GenericEntityChoiceListTest extends TestCase
 {
     const SINGLE_INT_ID_CLASS = 'Symfony\Bridge\Doctrine\Tests\Fixtures\SingleIntIdEntity';
 
@@ -36,22 +40,6 @@ class GenericEntityChoiceListTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        if (!class_exists('Symfony\Component\Form\Form')) {
-            $this->markTestSkipped('The "Form" component is not available');
-        }
-
-        if (!class_exists('Doctrine\DBAL\Platforms\MySqlPlatform')) {
-            $this->markTestSkipped('Doctrine DBAL is not available.');
-        }
-
-        if (!class_exists('Doctrine\Common\Version')) {
-            $this->markTestSkipped('Doctrine Common is not available.');
-        }
-
-        if (!class_exists('Doctrine\ORM\EntityManager')) {
-            $this->markTestSkipped('Doctrine ORM is not available.');
-        }
-
         $this->em = DoctrineTestHelper::createTestEntityManager();
 
         $schemaTool = new SchemaTool($this->em);
@@ -281,6 +269,21 @@ class GenericEntityChoiceListTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->assertEquals(array(1, 2), $choiceList->getValuesForChoices(array($item1, $item2)));
+    }
+
+    public function testInitShorthandEntityName2()
+    {
+        $item1 = new SingleIntIdEntity(1, 'Foo');
+        $item2 = new SingleIntIdEntity(2, 'Bar');
+
+        $this->em->persist($item1);
+        $this->em->persist($item2);
+
+        $choiceList = new EntityChoiceList(
+            $this->em,
+            'SymfonyTestsDoctrine:SingleIntIdEntity'
+        );
+
         $this->assertEquals(array(1, 2), $choiceList->getIndicesForChoices(array($item1, $item2)));
     }
 }

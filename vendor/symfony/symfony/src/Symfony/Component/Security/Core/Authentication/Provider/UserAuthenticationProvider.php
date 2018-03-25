@@ -33,8 +33,6 @@ abstract class UserAuthenticationProvider implements AuthenticationProviderInter
     private $providerKey;
 
     /**
-     * Constructor.
-     *
      * @param UserCheckerInterface $userChecker                An UserCheckerInterface interface
      * @param string               $providerKey                A provider key
      * @param bool                 $hideUserNotFoundExceptions Whether to hide user not found exception or not
@@ -58,23 +56,23 @@ abstract class UserAuthenticationProvider implements AuthenticationProviderInter
     public function authenticate(TokenInterface $token)
     {
         if (!$this->supports($token)) {
-            return;
+            throw new AuthenticationException('The token is not supported by this authentication provider.');
         }
 
         $username = $token->getUsername();
-        if (empty($username)) {
+        if ('' === $username || null === $username) {
             $username = 'NONE_PROVIDED';
         }
 
         try {
             $user = $this->retrieveUser($username, $token);
-        } catch (UsernameNotFoundException $notFound) {
+        } catch (UsernameNotFoundException $e) {
             if ($this->hideUserNotFoundExceptions) {
-                throw new BadCredentialsException('Bad credentials', 0, $notFound);
+                throw new BadCredentialsException('Bad credentials.', 0, $e);
             }
-            $notFound->setUsername($username);
+            $e->setUsername($username);
 
-            throw $notFound;
+            throw $e;
         }
 
         if (!$user instanceof UserInterface) {
@@ -87,7 +85,7 @@ abstract class UserAuthenticationProvider implements AuthenticationProviderInter
             $this->userChecker->checkPostAuth($user);
         } catch (BadCredentialsException $e) {
             if ($this->hideUserNotFoundExceptions) {
-                throw new BadCredentialsException('Bad credentials', 0, $e);
+                throw new BadCredentialsException('Bad credentials.', 0, $e);
             }
 
             throw $e;
@@ -110,10 +108,7 @@ abstract class UserAuthenticationProvider implements AuthenticationProviderInter
     /**
      * Retrieves roles from user and appends SwitchUserRole if original token contained one.
      *
-     * @param UserInterface  $user  The user
-     * @param TokenInterface $token The token
-     *
-     * @return Role[] The user roles
+     * @return array The user roles
      */
     private function getRoles(UserInterface $user, TokenInterface $token)
     {
@@ -145,9 +140,6 @@ abstract class UserAuthenticationProvider implements AuthenticationProviderInter
     /**
      * Does additional checks on the user and token (like validating the
      * credentials).
-     *
-     * @param UserInterface         $user  The retrieved UserInterface instance
-     * @param UsernamePasswordToken $token The UsernamePasswordToken token to be authenticated
      *
      * @throws AuthenticationException if the credentials could not be validated
      */

@@ -23,7 +23,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
  *
- * @see    Doctrine\Common\Collections\Collection
+ * @see Collection
  */
 class MergeDoctrineCollectionListener implements EventSubscriberInterface
 {
@@ -41,7 +41,7 @@ class MergeDoctrineCollectionListener implements EventSubscriberInterface
 
         // If all items were removed, call clear which has a higher
         // performance on persistent collections
-        if ($collection instanceof Collection && count($data) === 0) {
+        if ($collection instanceof Collection && 0 === count($data)) {
             $collection->clear();
         }
     }

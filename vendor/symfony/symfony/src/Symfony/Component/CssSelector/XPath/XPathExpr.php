@@ -14,33 +14,24 @@ namespace Symfony\Component\CssSelector\XPath;
 /**
  * XPath expression translator interface.
  *
- * This component is a port of the Python cssselector library,
+ * This component is a port of the Python cssselect library,
  * which is copyright Ian Bicking, @see https://github.com/SimonSapin/cssselect.
  *
  * @author Jean-François Simon <jeanfrancois.simon@sensiolabs.com>
+ *
+ * @internal
  */
 class XPathExpr
 {
-    /**
-     * @var string
-     */
     private $path;
-
-    /**
-     * @var string
-     */
     private $element;
-
-    /**
-     * @var string
-     */
     private $condition;
 
     /**
-     * @param string  $path
-     * @param string  $element
-     * @param string  $condition
-     * @param bool    $starPrefix
+     * @param string $path
+     * @param string $element
+     * @param string $condition
+     * @param bool   $starPrefix
      */
     public function __construct($path = '', $element = '*', $condition = '', $starPrefix = false)
     {
@@ -64,11 +55,11 @@ class XPathExpr
     /**
      * @param $condition
      *
-     * @return XPathExpr
+     * @return $this
      */
     public function addCondition($condition)
     {
-        $this->condition = $this->condition ? sprintf('%s and (%s)', $this->condition, $condition) : $condition;
+        $this->condition = $this->condition ? sprintf('(%s) and (%s)', $this->condition, $condition) : $condition;
 
         return $this;
     }
@@ -82,7 +73,7 @@ class XPathExpr
     }
 
     /**
-     * @return XPathExpr
+     * @return $this
      */
     public function addNameTest()
     {
@@ -95,7 +86,7 @@ class XPathExpr
     }
 
     /**
-     * @return XPathExpr
+     * @return $this
      */
     public function addStarPrefix()
     {
@@ -110,9 +101,9 @@ class XPathExpr
      * @param string    $combiner
      * @param XPathExpr $expr
      *
-     * @return XPathExpr
+     * @return $this
      */
-    public function join($combiner, XPathExpr $expr)
+    public function join($combiner, self $expr)
     {
         $path = $this->__toString().$combiner;
 

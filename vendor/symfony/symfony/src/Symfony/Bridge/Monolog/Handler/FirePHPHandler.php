@@ -22,9 +22,6 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class FirePHPHandler extends BaseFirePHPHandler
 {
-    /**
-     * @var array
-     */
     private $headers = array();
 
     /**
@@ -33,7 +30,7 @@ class FirePHPHandler extends BaseFirePHPHandler
     private $response;
 
     /**
-     * Adds the headers to the response once it's created
+     * Adds the headers to the response once it's created.
      */
     public function onKernelResponse(FilterResponseEvent $event)
     {
@@ -73,7 +70,7 @@ class FirePHPHandler extends BaseFirePHPHandler
     }
 
     /**
-     * Override default behavior since we check the user agent in onKernelResponse
+     * Override default behavior since we check the user agent in onKernelResponse.
      */
     protected function headersAccepted()
     {

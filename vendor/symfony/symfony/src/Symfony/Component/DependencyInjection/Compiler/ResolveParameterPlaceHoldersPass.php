@@ -24,8 +24,6 @@ class ResolveParameterPlaceHoldersPass implements CompilerPassInterface
     /**
      * Processes the ContainerBuilder to resolve parameter placeholders.
      *
-     * @param ContainerBuilder $container
-     *
      * @throws ParameterNotFoundException
      */
     public function process(ContainerBuilder $container)
@@ -37,6 +35,16 @@ class ResolveParameterPlaceHoldersPass implements CompilerPassInterface
                 $definition->setClass($parameterBag->resolveValue($definition->getClass()));
                 $definition->setFile($parameterBag->resolveValue($definition->getFile()));
                 $definition->setArguments($parameterBag->resolveValue($definition->getArguments()));
+                if ($definition->getFactoryClass(false)) {
+                    $definition->setFactoryClass($parameterBag->resolveValue($definition->getFactoryClass(false)));
+                }
+
+                $factory = $definition->getFactory();
+
+                if (is_array($factory) && isset($factory[0])) {
+                    $factory[0] = $parameterBag->resolveValue($factory[0]);
+                    $definition->setFactory($factory);
+                }
 
                 $calls = array();
                 foreach ($definition->getMethodCalls() as $name => $arguments) {
@@ -54,7 +62,7 @@ class ResolveParameterPlaceHoldersPass implements CompilerPassInterface
 
         $aliases = array();
         foreach ($container->getAliases() as $name => $target) {
-            $aliases[$parameterBag->resolveValue($name)] = $parameterBag->resolveValue($target);
+            $aliases[$parameterBag->resolveValue($name)] = $target;
         }
         $container->setAliases($aliases);
 

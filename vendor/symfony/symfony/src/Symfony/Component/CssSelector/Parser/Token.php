@@ -14,34 +14,25 @@ namespace Symfony\Component\CssSelector\Parser;
 /**
  * CSS selector token.
  *
- * This component is a port of the Python cssselector library,
+ * This component is a port of the Python cssselect library,
  * which is copyright Ian Bicking, @see https://github.com/SimonSapin/cssselect.
  *
  * @author Jean-François Simon <jeanfrancois.simon@sensiolabs.com>
+ *
+ * @internal
  */
 class Token
 {
-    const TYPE_FILE_END   = 'eof';
-    const TYPE_DELIMITER  = 'delimiter';
+    const TYPE_FILE_END = 'eof';
+    const TYPE_DELIMITER = 'delimiter';
     const TYPE_WHITESPACE = 'whitespace';
     const TYPE_IDENTIFIER = 'identifier';
-    const TYPE_HASH       = 'hash';
-    const TYPE_NUMBER     = 'number';
-    const TYPE_STRING     = 'string';
+    const TYPE_HASH = 'hash';
+    const TYPE_NUMBER = 'number';
+    const TYPE_STRING = 'string';
 
-    /**
-     * @var int
-     */
     private $type;
-
-    /**
-     * @var string
-     */
     private $value;
-
-    /**
-     * @var int
-     */
     private $position;
 
     /**
@@ -89,8 +80,6 @@ class Token
     }
 
     /**
-     * @param array $values
-     *
      * @return bool
      */
     public function isDelimiter(array $values = array())

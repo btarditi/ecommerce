@@ -17,6 +17,7 @@ use Symfony\Component\Console\Descriptor\MarkdownDescriptor;
 use Symfony\Component\Console\Descriptor\TextDescriptor;
 use Symfony\Component\Console\Descriptor\XmlDescriptor;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
 
 /**
  * This class adds helper method to describe objects in various formats.
@@ -30,16 +31,13 @@ class DescriptorHelper extends Helper
      */
     private $descriptors = array();
 
-    /**
-     * Constructor.
-     */
     public function __construct()
     {
         $this
-            ->register('txt',  new TextDescriptor())
-            ->register('xml',  new XmlDescriptor())
+            ->register('txt', new TextDescriptor())
+            ->register('xml', new XmlDescriptor())
             ->register('json', new JsonDescriptor())
-            ->register('md',   new MarkdownDescriptor())
+            ->register('md', new MarkdownDescriptor())
         ;
     }
 
@@ -54,17 +52,17 @@ class DescriptorHelper extends Helper
      * @param object          $object
      * @param array           $options
      *
-     * @throws \InvalidArgumentException when the given format is not supported
+     * @throws InvalidArgumentException when the given format is not supported
      */
     public function describe(OutputInterface $output, $object, array $options = array())
     {
         $options = array_merge(array(
-            'raw_text'  => false,
-            'format'    => 'txt',
+            'raw_text' => false,
+            'format' => 'txt',
         ), $options);
 
         if (!isset($this->descriptors[$options['format']])) {
-            throw new \InvalidArgumentException(sprintf('Unsupported format "%s".', $options['format']));
+            throw new InvalidArgumentException(sprintf('Unsupported format "%s".', $options['format']));
         }
 
         $descriptor = $this->descriptors[$options['format']];
@@ -77,7 +75,7 @@ class DescriptorHelper extends Helper
      * @param string              $format
      * @param DescriptorInterface $descriptor
      *
-     * @return DescriptorHelper
+     * @return $this
      */
     public function register($format, DescriptorInterface $descriptor)
     {

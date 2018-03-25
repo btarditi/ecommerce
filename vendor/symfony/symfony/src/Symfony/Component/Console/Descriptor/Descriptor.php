@@ -17,9 +17,12 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
 
 /**
  * @author Jean-François Simon <jeanfrancois.simon@sensiolabs.com>
+ *
+ * @internal
  */
 abstract class Descriptor implements DescriptorInterface
 {
@@ -52,15 +55,15 @@ abstract class Descriptor implements DescriptorInterface
                 $this->describeApplication($object, $options);
                 break;
             default:
-                throw new \InvalidArgumentException(sprintf('Object of type "%s" is not describable.', get_class($object)));
+                throw new InvalidArgumentException(sprintf('Object of type "%s" is not describable.', get_class($object)));
         }
     }
 
     /**
      * Writes content to output.
      *
-     * @param string  $content
-     * @param bool    $decorated
+     * @param string $content
+     * @param bool   $decorated
      */
     protected function write($content, $decorated = false)
     {
@@ -70,18 +73,12 @@ abstract class Descriptor implements DescriptorInterface
     /**
      * Describes an InputArgument instance.
      *
-     * @param InputArgument $argument
-     * @param array         $options
-     *
      * @return string|mixed
      */
     abstract protected function describeInputArgument(InputArgument $argument, array $options = array());
 
     /**
      * Describes an InputOption instance.
-     *
-     * @param InputOption $option
-     * @param array       $options
      *
      * @return string|mixed
      */
@@ -90,9 +87,6 @@ abstract class Descriptor implements DescriptorInterface
     /**
      * Describes an InputDefinition instance.
      *
-     * @param InputDefinition $definition
-     * @param array           $options
-     *
      * @return string|mixed
      */
     abstract protected function describeInputDefinition(InputDefinition $definition, array $options = array());
@@ -100,18 +94,12 @@ abstract class Descriptor implements DescriptorInterface
     /**
      * Describes a Command instance.
      *
-     * @param Command $command
-     * @param array   $options
-     *
      * @return string|mixed
      */
     abstract protected function describeCommand(Command $command, array $options = array());
 
     /**
      * Describes an Application instance.
-     *
-     * @param Application $application
-     * @param array       $options
      *
      * @return string|mixed
      */

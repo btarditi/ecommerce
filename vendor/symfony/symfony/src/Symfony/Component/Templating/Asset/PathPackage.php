@@ -11,18 +11,20 @@
 
 namespace Symfony\Component\Templating\Asset;
 
+@trigger_error('The Symfony\Component\Templating\Asset\PathPackage is deprecated since Symfony 2.7 and will be removed in 3.0. Use the Asset component instead.', E_USER_DEPRECATED);
+
 /**
  * The path packages adds a version and a base path to asset URLs.
  *
  * @author Kris Wallsmith <kris@symfony.com>
+ *
+ * @deprecated since 2.7, will be removed in 3.0. Use the Asset component instead.
  */
 class PathPackage extends Package
 {
     private $basePath;
 
     /**
-     * Constructor.
-     *
      * @param string $basePath The base path to be prepended to relative paths
      * @param string $version  The package version
      * @param string $format   The format used to apply the version
@@ -42,13 +44,16 @@ class PathPackage extends Package
         }
     }
 
-    public function getUrl($path)
+    /**
+     * {@inheritdoc}
+     */
+    public function getUrl($path, $version = null)
     {
         if (false !== strpos($path, '://') || 0 === strpos($path, '//')) {
             return $path;
         }
 
-        $url = $this->applyVersion($path);
+        $url = $this->applyVersion($path, $version);
 
         // apply the base path
         if ('/' !== substr($url, 0, 1)) {

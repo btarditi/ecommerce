@@ -11,10 +11,11 @@
 
 namespace Symfony\Component\Translation\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Intl\Util\IntlTestHelper;
 use Symfony\Component\Translation\IdentityTranslator;
 
-class IdentityTranslatorTest extends \PHPUnit_Framework_TestCase
+class IdentityTranslatorTest extends TestCase
 {
     /**
      * @dataProvider getTransTests
@@ -60,7 +61,7 @@ class IdentityTranslatorTest extends \PHPUnit_Framework_TestCase
     public function testGetLocaleReturnsDefaultLocaleIfNotSet()
     {
         // in order to test with "pt_BR"
-        IntlTestHelper::requireFullIntl($this);
+        IntlTestHelper::requireFullIntl($this, false);
 
         $translator = new IdentityTranslator();
 
@@ -74,8 +75,8 @@ class IdentityTranslatorTest extends \PHPUnit_Framework_TestCase
     public function getTransTests()
     {
         return array(
-            array('Symfony2 is great!', 'Symfony2 is great!', array()),
-            array('Symfony2 is awesome!', 'Symfony2 is %what%!', array('%what%' => 'awesome')),
+            array('Symfony is great!', 'Symfony is great!', array()),
+            array('Symfony is awesome!', 'Symfony is %what%!', array('%what%' => 'awesome')),
         );
     }
 

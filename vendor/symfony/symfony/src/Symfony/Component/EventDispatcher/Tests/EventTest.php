@@ -11,13 +11,14 @@
 
 namespace Symfony\Component\EventDispatcher\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * Test class for Event.
  */
-class EventTest extends \PHPUnit_Framework_TestCase
+class EventTest extends TestCase
 {
     /**
      * @var \Symfony\Component\EventDispatcher\Event
@@ -60,23 +61,35 @@ class EventTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($this->event->isPropagationStopped());
     }
 
-    public function testSetDispatcher()
+    /**
+     * @group legacy
+     */
+    public function testLegacySetDispatcher()
     {
         $this->event->setDispatcher($this->dispatcher);
         $this->assertSame($this->dispatcher, $this->event->getDispatcher());
     }
 
-    public function testGetDispatcher()
+    /**
+     * @group legacy
+     */
+    public function testLegacyGetDispatcher()
     {
         $this->assertNull($this->event->getDispatcher());
     }
 
-    public function testGetName()
+    /**
+     * @group legacy
+     */
+    public function testLegacyGetName()
     {
         $this->assertNull($this->event->getName());
     }
 
-    public function testSetName()
+    /**
+     * @group legacy
+     */
+    public function testLegacySetName()
     {
         $this->event->setName('foo');
         $this->assertEquals('foo', $this->event->getName());

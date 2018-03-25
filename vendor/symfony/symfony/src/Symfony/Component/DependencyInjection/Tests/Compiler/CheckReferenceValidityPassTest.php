@@ -11,15 +11,18 @@
 
 namespace Symfony\Component\DependencyInjection\Tests\Compiler;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Scope;
-
 use Symfony\Component\DependencyInjection\Compiler\CheckReferenceValidityPass;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-class CheckReferenceValidityPassTest extends \PHPUnit_Framework_TestCase
+class CheckReferenceValidityPassTest extends TestCase
 {
+    /**
+     * @group legacy
+     */
     public function testProcessIgnoresScopeWideningIfNonStrictReference()
     {
         $container = new ContainerBuilder();
@@ -27,10 +30,13 @@ class CheckReferenceValidityPassTest extends \PHPUnit_Framework_TestCase
         $container->register('b')->setScope('prototype');
 
         $this->process($container);
+
+        $this->addToAssertionCount(1);
     }
 
     /**
      * @expectedException \RuntimeException
+     * @group legacy
      */
     public function testProcessDetectsScopeWidening()
     {
@@ -39,8 +45,13 @@ class CheckReferenceValidityPassTest extends \PHPUnit_Framework_TestCase
         $container->register('b')->setScope('prototype');
 
         $this->process($container);
+
+        $this->addToAssertionCount(1);
     }
 
+    /**
+     * @group legacy
+     */
     public function testProcessIgnoresCrossScopeHierarchyReferenceIfNotStrict()
     {
         $container = new ContainerBuilder();
@@ -51,10 +62,13 @@ class CheckReferenceValidityPassTest extends \PHPUnit_Framework_TestCase
         $container->register('b')->setScope('b');
 
         $this->process($container);
+
+        $this->addToAssertionCount(1);
     }
 
     /**
      * @expectedException \RuntimeException
+     * @group legacy
      */
     public function testProcessDetectsCrossScopeHierarchyReference()
     {
@@ -88,6 +102,8 @@ class CheckReferenceValidityPassTest extends \PHPUnit_Framework_TestCase
         $container->register('b');
 
         $this->process($container);
+
+        $this->addToAssertionCount(1);
     }
 
     protected function process(ContainerBuilder $container)

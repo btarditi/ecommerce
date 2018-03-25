@@ -11,13 +11,14 @@
 
 namespace Symfony\Component\HttpKernel\Tests\DataCollector;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\DataCollector\ConfigDataCollector;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class ConfigDataCollectorTest extends \PHPUnit_Framework_TestCase
+class ConfigDataCollectorTest extends TestCase
 {
     public function testCollect()
     {
@@ -26,19 +27,19 @@ class ConfigDataCollectorTest extends \PHPUnit_Framework_TestCase
         $c->setKernel($kernel);
         $c->collect(new Request(), new Response());
 
-        $this->assertSame('test',$c->getEnv());
+        $this->assertSame('test', $c->getEnv());
         $this->assertTrue($c->isDebug());
-        $this->assertSame('config',$c->getName());
-        $this->assertSame('testkernel',$c->getAppName());
-        $this->assertSame(PHP_VERSION,$c->getPhpVersion());
-        $this->assertSame(Kernel::VERSION,$c->getSymfonyVersion());
+        $this->assertSame('config', $c->getName());
+        $this->assertSame('testkernel', $c->getAppName());
+        $this->assertSame(PHP_VERSION, $c->getPhpVersion());
+        $this->assertSame(Kernel::VERSION, $c->getSymfonyVersion());
         $this->assertNull($c->getToken());
 
         // if else clause because we don't know it
         if (extension_loaded('xdebug')) {
-            $this->assertTrue($c->hasXdebug());
+            $this->assertTrue($c->hasXDebug());
         } else {
-            $this->assertFalse($c->hasXdebug());
+            $this->assertFalse($c->hasXDebug());
         }
 
         // if else clause because we don't know it
@@ -66,10 +67,6 @@ class KernelForTest extends Kernel
     }
 
     public function registerBundles()
-    {
-    }
-
-    public function init()
     {
     }
 

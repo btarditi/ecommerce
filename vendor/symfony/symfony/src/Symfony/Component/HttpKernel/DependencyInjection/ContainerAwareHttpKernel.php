@@ -25,22 +25,27 @@ use Symfony\Component\DependencyInjection\Scope;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
+ *
+ * @deprecated since version 2.7, to be removed in 3.0.
  */
 class ContainerAwareHttpKernel extends HttpKernel
 {
     protected $container;
 
     /**
-     * Constructor.
-     *
      * @param EventDispatcherInterface    $dispatcher         An EventDispatcherInterface instance
      * @param ContainerInterface          $container          A ContainerInterface instance
      * @param ControllerResolverInterface $controllerResolver A ControllerResolverInterface instance
      * @param RequestStack                $requestStack       A stack for master/sub requests
+     * @param bool                        $triggerDeprecation Whether or not to trigger the deprecation warning for the ContainerAwareHttpKernel
      */
-    public function __construct(EventDispatcherInterface $dispatcher, ContainerInterface $container, ControllerResolverInterface $controllerResolver, RequestStack $requestStack = null)
+    public function __construct(EventDispatcherInterface $dispatcher, ContainerInterface $container, ControllerResolverInterface $controllerResolver, RequestStack $requestStack = null, $triggerDeprecation = true)
     {
         parent::__construct($dispatcher, $controllerResolver, $requestStack);
+
+        if ($triggerDeprecation) {
+            @trigger_error('The '.__CLASS__.' class is deprecated since Symfony 2.7 and will be removed in 3.0. Use the Symfony\Component\HttpKernel\HttpKernel class instead.', E_USER_DEPRECATED);
+        }
 
         $this->container = $container;
 
@@ -55,14 +60,17 @@ class ContainerAwareHttpKernel extends HttpKernel
      */
     public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
     {
-        $request->headers->set('X-Php-Ob-Level', ob_get_level());
-
         $this->container->enterScope('request');
         $this->container->set('request', $request, 'request');
 
         try {
             $response = parent::handle($request, $type, $catch);
         } catch (\Exception $e) {
+            $this->container->set('request', null, 'request');
+            $this->container->leaveScope('request');
+
+            throw $e;
+        } catch (\Throwable $e) {
             $this->container->set('request', null, 'request');
             $this->container->leaveScope('request');
 

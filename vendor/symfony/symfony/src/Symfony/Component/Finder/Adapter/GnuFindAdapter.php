@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Finder\Adapter;
 
+@trigger_error('The '.__NAMESPACE__.'\GnuFindAdapter class is deprecated since Symfony 2.8 and will be removed in 3.0. Use directly the Finder class instead.', E_USER_DEPRECATED);
+
 use Symfony\Component\Finder\Shell\Shell;
 use Symfony\Component\Finder\Shell\Command;
 use Symfony\Component\Finder\Iterator\SortableIterator;
@@ -20,6 +22,8 @@ use Symfony\Component\Finder\Expression\Expression;
  * Shell engine implementation using GNU find command.
  *
  * @author Jean-François Simon <contact@jfsimon.fr>
+ *
+ * @deprecated since 2.8, to be removed in 3.0. Use Finder instead.
  */
 class GnuFindAdapter extends AbstractFindAdapter
 {
@@ -72,7 +76,7 @@ class GnuFindAdapter extends AbstractFindAdapter
      */
     protected function canBeUsed()
     {
-        return $this->shell->getType() === Shell::TYPE_UNIX && parent::canBeUsed();
+        return Shell::TYPE_UNIX === $this->shell->getType() && parent::canBeUsed();
     }
 
     /**

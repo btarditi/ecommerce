@@ -14,76 +14,28 @@ namespace Symfony\Component\CssSelector\Parser\Tokenizer;
 /**
  * CSS selector tokenizer patterns builder.
  *
- * This component is a port of the Python cssselector library,
+ * This component is a port of the Python cssselect library,
  * which is copyright Ian Bicking, @see https://github.com/SimonSapin/cssselect.
  *
  * @author Jean-François Simon <jeanfrancois.simon@sensiolabs.com>
+ *
+ * @internal
  */
 class TokenizerPatterns
 {
-    /**
-     * @var string
-     */
     private $unicodeEscapePattern;
-
-    /**
-     * @var string
-     */
     private $simpleEscapePattern;
-
-    /**
-     * @var string
-     */
     private $newLineEscapePattern;
-
-    /**
-     * @var string
-     */
     private $escapePattern;
-
-    /**
-     * @var string
-     */
     private $stringEscapePattern;
-
-    /**
-     * @var string
-     */
     private $nonAsciiPattern;
-
-    /**
-     * @var string
-     */
     private $nmCharPattern;
-
-    /**
-     * @var string
-     */
     private $nmStartPattern;
-
-    /**
-     * @var string
-     */
     private $identifierPattern;
-
-    /**
-     * @var string
-     */
     private $hashPattern;
-
-    /**
-     * @var string
-     */
     private $numberPattern;
-
-    /**
-     * @var string
-     */
     private $quotedStringPattern;
 
-    /**
-     * Constructor.
-     */
     public function __construct()
     {
         $this->unicodeEscapePattern = '\\\\([0-9a-f]{1,6})(?:\r\n|[ \n\r\t\f])?';

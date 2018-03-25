@@ -24,12 +24,6 @@ class TemplatePathsCacheWarmer extends CacheWarmer
     protected $finder;
     protected $locator;
 
-    /**
-     * Constructor.
-     *
-     * @param TemplateFinderInterface $finder  A template finder
-     * @param TemplateLocator         $locator The template locator
-     */
     public function __construct(TemplateFinderInterface $finder, TemplateLocator $locator)
     {
         $this->finder = $finder;
@@ -55,7 +49,7 @@ class TemplatePathsCacheWarmer extends CacheWarmer
     /**
      * Checks whether this warmer is optional or not.
      *
-     * @return bool    always true
+     * @return bool always true
      */
     public function isOptional()
     {

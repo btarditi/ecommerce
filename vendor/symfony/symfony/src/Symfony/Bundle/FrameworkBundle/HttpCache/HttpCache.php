@@ -29,8 +29,6 @@ abstract class HttpCache extends BaseHttpCache
     protected $kernel;
 
     /**
-     * Constructor.
-     *
      * @param HttpKernelInterface $kernel   An HttpKernelInterface instance
      * @param string              $cacheDir The cache directory (default used if null)
      */
@@ -39,7 +37,7 @@ abstract class HttpCache extends BaseHttpCache
         $this->kernel = $kernel;
         $this->cacheDir = $cacheDir;
 
-        parent::__construct($kernel, $this->createStore(), $this->createEsi(), array_merge(array('debug' => $kernel->isDebug()), $this->getOptions()));
+        parent::__construct($kernel, $this->createStore(), $this->createSurrogate(), array_merge(array('debug' => $kernel->isDebug()), $this->getOptions()));
     }
 
     /**
@@ -54,8 +52,9 @@ abstract class HttpCache extends BaseHttpCache
     protected function forward(Request $request, $raw = false, Response $entry = null)
     {
         $this->getKernel()->boot();
-        $this->getKernel()->getContainer()->set('cache', $this);
-        $this->getKernel()->getContainer()->set('esi', $this->getEsi());
+        $container = $this->getKernel()->getContainer();
+        $container->set('cache', $this);
+        $container->set($this->getSurrogate()->getName(), $this->getSurrogate());
 
         return parent::forward($request, $raw, $entry);
     }
@@ -70,9 +69,23 @@ abstract class HttpCache extends BaseHttpCache
         return array();
     }
 
-    protected function createEsi()
+    protected function createSurrogate()
     {
         return new Esi();
+    }
+
+    /**
+     * Creates new ESI instance.
+     *
+     * @return Esi
+     *
+     * @deprecated since version 2.6, to be removed in 3.0. Use createSurrogate() instead
+     */
+    protected function createEsi()
+    {
+        @trigger_error('The '.__METHOD__.' method is deprecated since Symfony 2.6 and will be removed in 3.0. Use createSurrogate() instead.', E_USER_DEPRECATED);
+
+        return $this->createSurrogate();
     }
 
     protected function createStore()

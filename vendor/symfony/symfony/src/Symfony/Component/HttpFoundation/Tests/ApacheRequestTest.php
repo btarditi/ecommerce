@@ -11,9 +11,10 @@
 
 namespace Symfony\Component\HttpFoundation\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\ApacheRequest;
 
-class ApacheRequestTest extends \PHPUnit_Framework_TestCase
+class ApacheRequestTest extends TestCase
 {
     /**
      * @dataProvider provideServerVars
@@ -35,7 +36,7 @@ class ApacheRequestTest extends \PHPUnit_Framework_TestCase
                 array(
                     'REQUEST_URI' => '/foo/app_dev.php/bar',
                     'SCRIPT_NAME' => '/foo/app_dev.php',
-                    'PATH_INFO'   => '/bar',
+                    'PATH_INFO' => '/bar',
                 ),
                 '/foo/app_dev.php/bar',
                 '/foo/app_dev.php',
@@ -54,7 +55,7 @@ class ApacheRequestTest extends \PHPUnit_Framework_TestCase
                 array(
                     'REQUEST_URI' => '/app_dev.php/foo/bar',
                     'SCRIPT_NAME' => '/app_dev.php',
-                    'PATH_INFO'   => '/foo/bar',
+                    'PATH_INFO' => '/foo/bar',
                 ),
                 '/app_dev.php/foo/bar',
                 '/app_dev.php',

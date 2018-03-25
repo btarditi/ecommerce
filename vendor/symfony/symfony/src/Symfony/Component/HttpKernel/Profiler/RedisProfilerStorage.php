@@ -11,11 +11,16 @@
 
 namespace Symfony\Component\HttpKernel\Profiler;
 
+@trigger_error('The '.__NAMESPACE__.'\RedisProfilerStorage class is deprecated since Symfony 2.8 and will be removed in 3.0. Use FileProfilerStorage instead.', E_USER_DEPRECATED);
+
 /**
  * RedisProfilerStorage stores profiling information in Redis.
  *
  * @author Andrej Hudec <pulzarraider@gmail.com>
  * @author Stephane PY <py.stephane1@gmail.com>
+ *
+ * @deprecated Deprecated since Symfony 2.8, to be removed in Symfony 3.0.
+ *             Use {@link FileProfilerStorage} instead.
  */
 class RedisProfilerStorage implements ProfilerStorageInterface
 {
@@ -35,8 +40,6 @@ class RedisProfilerStorage implements ProfilerStorageInterface
     private $redis;
 
     /**
-     * Constructor.
-     *
      * @param string $dsn      A data source name
      * @param string $username Not used
      * @param string $password Not used
@@ -63,15 +66,17 @@ class RedisProfilerStorage implements ProfilerStorageInterface
         $result = array();
 
         foreach ($profileList as $item) {
-            if ($limit === 0) {
+            if (0 === $limit) {
                 break;
             }
 
-            if ($item == '') {
+            if ('' == $item) {
                 continue;
             }
 
-            list($itemToken, $itemIp, $itemMethod, $itemUrl, $itemTime, $itemParent) = explode("\t", $item, 6);
+            $values = explode("\t", $item, 7);
+            list($itemToken, $itemIp, $itemMethod, $itemUrl, $itemTime, $itemParent) = $values;
+            $statusCode = isset($values[6]) ? $values[6] : null;
 
             $itemTime = (int) $itemTime;
 
@@ -88,12 +93,13 @@ class RedisProfilerStorage implements ProfilerStorageInterface
             }
 
             $result[] = array(
-                'token'  => $itemToken,
-                'ip'     => $itemIp,
+                'token' => $itemToken,
+                'ip' => $itemIp,
                 'method' => $itemMethod,
-                'url'    => $itemUrl,
-                'time'   => $itemTime,
+                'url' => $itemUrl,
+                'time' => $itemTime,
                 'parent' => $itemParent,
+                'status_code' => $statusCode,
             );
             --$limit;
         }
@@ -120,7 +126,7 @@ class RedisProfilerStorage implements ProfilerStorageInterface
         $result = array();
 
         foreach ($profileList as $item) {
-            if ($item == '') {
+            if ('' == $item) {
                 continue;
             }
 
@@ -158,14 +164,14 @@ class RedisProfilerStorage implements ProfilerStorageInterface
     public function write(Profile $profile)
     {
         $data = array(
-            'token'    => $profile->getToken(),
-            'parent'   => $profile->getParentToken(),
+            'token' => $profile->getToken(),
+            'parent' => $profile->getParentToken(),
             'children' => array_map(function ($p) { return $p->getToken(); }, $profile->getChildren()),
-            'data'     => $profile->getCollectors(),
-            'ip'       => $profile->getIp(),
-            'method'   => $profile->getMethod(),
-            'url'      => $profile->getUrl(),
-            'time'     => $profile->getTime(),
+            'data' => $profile->getCollectors(),
+            'ip' => $profile->getIp(),
+            'method' => $profile->getMethod(),
+            'url' => $profile->getUrl(),
+            'time' => $profile->getTime(),
         );
 
         $profileIndexed = false !== $this->getValue($this->getItemName($profile->getToken()));
@@ -182,6 +188,7 @@ class RedisProfilerStorage implements ProfilerStorageInterface
                     $profile->getUrl(),
                     $profile->getTime(),
                     $profile->getParentToken(),
+                    $profile->getStatusCode(),
                 ))."\n";
 
                 return $this->appendValue($indexName, $indexRow, $this->lifetime);
@@ -205,7 +212,7 @@ class RedisProfilerStorage implements ProfilerStorageInterface
         if (null === $this->redis) {
             $data = parse_url($this->dsn);
 
-            if (false === $data || !isset($data['scheme']) || $data['scheme'] !== 'redis' || !isset($data['host']) || !isset($data['port'])) {
+            if (false === $data || !isset($data['scheme']) || 'redis' !== $data['scheme'] || !isset($data['host']) || !isset($data['port'])) {
                 throw new \RuntimeException(sprintf('Please check your configuration. You are trying to use Redis with an invalid dsn "%s". The minimal expected format is "redis://[host]:port".', $this->dsn));
             }
 
@@ -233,7 +240,7 @@ class RedisProfilerStorage implements ProfilerStorageInterface
     }
 
     /**
-     * Set instance of the Redis
+     * Set instance of the Redis.
      *
      * @param \Redis $redis
      */
@@ -378,8 +385,6 @@ class RedisProfilerStorage implements ProfilerStorageInterface
 
     /**
      * Removes the specified keys.
-     *
-     * @param array $keys
      *
      * @return bool
      */

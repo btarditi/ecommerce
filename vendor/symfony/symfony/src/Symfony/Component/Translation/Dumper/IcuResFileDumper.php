@@ -18,46 +18,33 @@ use Symfony\Component\Translation\MessageCatalogue;
  *
  * @author Stealth35
  */
-class IcuResFileDumper implements DumperInterface
+class IcuResFileDumper extends FileDumper
 {
     /**
      * {@inheritdoc}
      */
-    public function dump(MessageCatalogue $messages, $options = array())
-    {
-        if (!array_key_exists('path', $options)) {
-            throw new \InvalidArgumentException('The file dumper need a path options.');
-        }
-
-        // save a file for each domain
-        foreach ($messages->getDomains() as $domain) {
-            $file = $messages->getLocale().'.'.$this->getExtension();
-            $path = $options['path'].'/'.$domain.'/';
-
-            if (!file_exists($path)) {
-                mkdir($path);
-            }
-
-            // backup
-            if (file_exists($path.$file)) {
-                copy($path.$file, $path.$file.'~');
-            }
-
-            // save file
-            file_put_contents($path.$file, $this->format($messages, $domain));
-        }
-    }
+    protected $relativePathTemplate = '%domain%/%locale%.%extension%';
 
     /**
      * {@inheritdoc}
      */
     public function format(MessageCatalogue $messages, $domain = 'messages')
     {
+        @trigger_error('The '.__METHOD__.' method is deprecated since Symfony 2.8 and will be removed in 3.0. Use the formatCatalogue() method instead.', E_USER_DEPRECATED);
+
+        return $this->formatCatalogue($messages, $domain);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function formatCatalogue(MessageCatalogue $messages, $domain, array $options = array())
+    {
         $data = $indexes = $resources = '';
 
         foreach ($messages->all($domain) as $source => $target) {
             $indexes .= pack('v', strlen($data) + 28);
-            $data    .= $source."\0";
+            $data .= $source."\0";
         }
 
         $data .= $this->writePadding($data);
@@ -75,7 +62,7 @@ class IcuResFileDumper implements DumperInterface
 
         $resOffset = $this->getPosition($data);
 
-        $data .= pack('v', count($messages))
+        $data .= pack('v', count($messages->all($domain)))
             .$indexes
             .$this->writePadding($data)
             .$resources
@@ -86,11 +73,11 @@ class IcuResFileDumper implements DumperInterface
         $root = pack('V7',
             $resOffset + (2 << 28), // Resource Offset + Resource Type
             6,                      // Index length
-            $keyTop,                // Index keys top
-            $bundleTop,             // Index resources top
-            $bundleTop,             // Index bundle top
-            count($messages),       // Index max table length
-            0                       // Index attributes
+            $keyTop,                        // Index keys top
+            $bundleTop,                     // Index resources top
+            $bundleTop,                     // Index bundle top
+            count($messages->all($domain)), // Index max table length
+            0                               // Index attributes
         );
 
         $header = pack('vC2v4C12@32',
@@ -102,11 +89,7 @@ class IcuResFileDumper implements DumperInterface
             1, 4, 0, 0              // Unicode version
         );
 
-        $output = $header
-               .$root
-               .$data;
-
-        return $output;
+        return $header.$root.$data;
     }
 
     private function writePadding($data)
@@ -120,9 +103,7 @@ class IcuResFileDumper implements DumperInterface
 
     private function getPosition($data)
     {
-        $position = (strlen($data) + 28) / 4;
-
-        return $position;
+        return (strlen($data) + 28) / 4;
     }
 
     /**

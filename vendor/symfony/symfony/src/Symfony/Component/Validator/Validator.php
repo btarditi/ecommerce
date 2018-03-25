@@ -11,41 +11,27 @@
 
 namespace Symfony\Component\Validator;
 
+@trigger_error('The '.__NAMESPACE__.'\Validator class is deprecated since Symfony 2.5 and will be removed in 3.0. Use the Symfony\Component\Validator\Validator\RecursiveValidator class instead.', E_USER_DEPRECATED);
+
+use Symfony\Component\Translation\TranslatorInterface;
 use Symfony\Component\Validator\Constraints\Valid;
 use Symfony\Component\Validator\Exception\ValidatorException;
-use Symfony\Component\Translation\TranslatorInterface;
 
 /**
  * Default implementation of {@link ValidatorInterface}.
  *
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Bernhard Schussek <bschussek@gmail.com>
+ *
+ * @deprecated since version 2.5, to be removed in 3.0.
+ *             Use {@link Validator\RecursiveValidator} instead.
  */
-class Validator implements ValidatorInterface
+class Validator implements ValidatorInterface, Mapping\Factory\MetadataFactoryInterface
 {
-    /**
-     * @var MetadataFactoryInterface
-     */
     private $metadataFactory;
-
-    /**
-     * @var ConstraintValidatorFactoryInterface
-     */
     private $validatorFactory;
-
-    /**
-     * @var TranslatorInterface
-     */
     private $translator;
-
-    /**
-     * @var null|string
-     */
     private $translationDomain;
-
-    /**
-     * @var array
-     */
     private $objectInitializers;
 
     public function __construct(
@@ -81,6 +67,14 @@ class Validator implements ValidatorInterface
     /**
      * {@inheritdoc}
      */
+    public function hasMetadataFor($value)
+    {
+        return $this->metadataFactory->hasMetadataFor($value);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function validate($value, $groups = null, $traverse = false, $deep = false)
     {
         $visitor = $this->createVisitor($value);
@@ -95,7 +89,7 @@ class Validator implements ValidatorInterface
     /**
      * {@inheritdoc}
      *
-     * @throws ValidatorException If the metadata for the value does not support properties.
+     * @throws ValidatorException if the metadata for the value does not support properties
      */
     public function validateProperty($containingValue, $property, $groups = null)
     {
@@ -126,11 +120,11 @@ class Validator implements ValidatorInterface
     /**
      * {@inheritdoc}
      *
-     * @throws ValidatorException If the metadata for the value does not support properties.
+     * @throws ValidatorException if the metadata for the value does not support properties
      */
     public function validatePropertyValue($containingValue, $property, $value, $groups = null)
     {
-        $visitor = $this->createVisitor($containingValue);
+        $visitor = $this->createVisitor(is_object($containingValue) ? $containingValue : $value);
         $metadata = $this->metadataFactory->getMetadataFor($containingValue);
 
         if (!$metadata instanceof PropertyMetadataContainerInterface) {
@@ -138,8 +132,12 @@ class Validator implements ValidatorInterface
                 ? '"'.$containingValue.'"'
                 : 'the value of type '.gettype($containingValue);
 
-            throw new ValidatorException(sprintf('The metadata for '.$valueAsString.' does not support properties.'));
+            throw new ValidatorException(sprintf('The metadata for %s does not support properties.', $valueAsString));
         }
+
+        // If $containingValue is passed as class name, take $value as root
+        // and start the traversal with an empty property path
+        $propertyPath = is_object($containingValue) ? $property : '';
 
         foreach ($this->resolveGroups($groups) as $group) {
             if (!$metadata->hasPropertyMetadata($property)) {
@@ -147,7 +145,7 @@ class Validator implements ValidatorInterface
             }
 
             foreach ($metadata->getPropertyMetadata($property) as $propMeta) {
-                $propMeta->accept($visitor, $value, $group, $property);
+                $propMeta->accept($visitor, $value, $group, $propertyPath);
             }
         }
 

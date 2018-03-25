@@ -11,15 +11,15 @@
 
 namespace Symfony\Component\Security\Core\Tests\Encoder;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder;
 
 /**
  * @author Elnur Abdurrakhimov <elnur@elnur.pro>
  */
-class BCryptPasswordEncoderTest extends \PHPUnit_Framework_TestCase
+class BCryptPasswordEncoderTest extends TestCase
 {
     const PASSWORD = 'password';
-    const BYTES = '0123456789abcdef';
     const VALID_COST = '04';
 
     /**
@@ -38,17 +38,24 @@ class BCryptPasswordEncoderTest extends \PHPUnit_Framework_TestCase
         new BCryptPasswordEncoder(32);
     }
 
-    public function testCostInRange()
+    /**
+     * @dataProvider validRangeData
+     */
+    public function testCostInRange($cost)
     {
-        for ($cost = 4; $cost <= 31; $cost++) {
-            new BCryptPasswordEncoder($cost);
-        }
+        $this->assertInstanceOf('Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder', new BCryptPasswordEncoder($cost));
+    }
+
+    public function validRangeData()
+    {
+        $costs = range(4, 31);
+        array_walk($costs, function (&$cost) { $cost = array($cost); });
+
+        return $costs;
     }
 
     public function testResultLength()
     {
-        $this->skipIfPhpVersionIsNotSupported();
-
         $encoder = new BCryptPasswordEncoder(self::VALID_COST);
         $result = $encoder->encodePassword(self::PASSWORD, null);
         $this->assertEquals(60, strlen($result));
@@ -56,19 +63,10 @@ class BCryptPasswordEncoderTest extends \PHPUnit_Framework_TestCase
 
     public function testValidation()
     {
-        $this->skipIfPhpVersionIsNotSupported();
-
         $encoder = new BCryptPasswordEncoder(self::VALID_COST);
         $result = $encoder->encodePassword(self::PASSWORD, null);
         $this->assertTrue($encoder->isPasswordValid($result, self::PASSWORD, null));
         $this->assertFalse($encoder->isPasswordValid($result, 'anotherPassword', null));
-    }
-
-    private function skipIfPhpVersionIsNotSupported()
-    {
-        if (version_compare(phpversion(), '5.3.7', '<')) {
-            $this->markTestSkipped('Requires PHP >= 5.3.7');
-        }
     }
 
     /**
@@ -78,13 +76,15 @@ class BCryptPasswordEncoderTest extends \PHPUnit_Framework_TestCase
     {
         $encoder = new BCryptPasswordEncoder(self::VALID_COST);
 
-        $encoder->encodePassword(str_repeat('a', 5000), 'salt');
+        $encoder->encodePassword(str_repeat('a', 73), 'salt');
     }
 
     public function testCheckPasswordLength()
     {
         $encoder = new BCryptPasswordEncoder(self::VALID_COST);
+        $result = $encoder->encodePassword(str_repeat('a', 72), null);
 
-        $this->assertFalse($encoder->isPasswordValid('encoded', str_repeat('a', 5000), 'salt'));
+        $this->assertFalse($encoder->isPasswordValid($result, str_repeat('a', 73), 'salt'));
+        $this->assertTrue($encoder->isPasswordValid($result, str_repeat('a', 72), 'salt'));
     }
 }

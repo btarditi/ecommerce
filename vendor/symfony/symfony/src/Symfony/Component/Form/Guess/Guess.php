@@ -14,7 +14,7 @@ namespace Symfony\Component\Form\Guess;
 use Symfony\Component\Form\Exception\InvalidArgumentException;
 
 /**
- * Base class for guesses made by TypeGuesserInterface implementation
+ * Base class for guesses made by TypeGuesserInterface implementation.
  *
  * Each instance contains a confidence value about the correctness of the guess.
  * Thus an instance with confidence HIGH_CONFIDENCE is more likely to be
@@ -25,31 +25,27 @@ use Symfony\Component\Form\Exception\InvalidArgumentException;
 abstract class Guess
 {
     /**
-     * Marks an instance with a value that is extremely likely to be correct
-     * @var int
+     * Marks an instance with a value that is extremely likely to be correct.
      */
     const VERY_HIGH_CONFIDENCE = 3;
 
     /**
-     * Marks an instance with a value that is very likely to be correct
-     * @var int
+     * Marks an instance with a value that is very likely to be correct.
      */
     const HIGH_CONFIDENCE = 2;
 
     /**
-     * Marks an instance with a value that is likely to be correct
-     * @var int
+     * Marks an instance with a value that is likely to be correct.
      */
     const MEDIUM_CONFIDENCE = 1;
 
     /**
-     * Marks an instance with a value that may be correct
-     * @var int
+     * Marks an instance with a value that may be correct.
      */
     const LOW_CONFIDENCE = 0;
 
     /**
-     * The confidence about the correctness of the value
+     * The confidence about the correctness of the value.
      *
      * One of VERY_HIGH_CONFIDENCE, HIGH_CONFIDENCE, MEDIUM_CONFIDENCE
      * and LOW_CONFIDENCE.
@@ -66,7 +62,7 @@ abstract class Guess
      *
      * @param Guess[] $guesses An array of guesses
      *
-     * @return Guess|null The guess with the highest confidence
+     * @return self|null
      */
     public static function getBestGuess(array $guesses)
     {
@@ -84,8 +80,6 @@ abstract class Guess
     }
 
     /**
-     * Constructor.
-     *
      * @param int $confidence The confidence
      *
      * @throws InvalidArgumentException if the given value of confidence is unknown

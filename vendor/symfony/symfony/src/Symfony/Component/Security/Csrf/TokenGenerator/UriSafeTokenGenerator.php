@@ -12,42 +12,30 @@
 namespace Symfony\Component\Security\Csrf\TokenGenerator;
 
 use Symfony\Component\Security\Core\Util\SecureRandomInterface;
-use Symfony\Component\Security\Core\Util\SecureRandom;
 
 /**
  * Generates CSRF tokens.
  *
- * @since  2.4
  * @author Bernhard Schussek <bernhard.schussek@symfony.com>
  */
 class UriSafeTokenGenerator implements TokenGeneratorInterface
 {
-    /**
-     * The generator for random values.
-     *
-     * @var SecureRandomInterface
-     */
-    private $random;
-
-    /**
-     * The amount of entropy collected for each token (in bits).
-     *
-     * @var int
-     */
     private $entropy;
 
     /**
      * Generates URI-safe CSRF tokens.
      *
-     * @param SecureRandomInterface|null $random  The random value generator used for
-     *                                            generating entropy
-     * @param int                        $entropy The amount of entropy collected for
-     *                                            each token (in bits)
+     * @param int $entropy The amount of entropy collected for each token (in bits)
      */
-    public function __construct(SecureRandomInterface $random = null, $entropy = 256)
+    public function __construct($entropy = 256)
     {
-        $this->random = $random ?: new SecureRandom();
-        $this->entropy = $entropy;
+        if ($entropy instanceof SecureRandomInterface || 2 === func_num_args()) {
+            @trigger_error('The '.__METHOD__.' method now requires the entropy to be given as the first argument. The SecureRandomInterface will be removed in 3.0.', E_USER_DEPRECATED);
+
+            $this->entropy = 2 === func_num_args() ? func_get_arg(1) : 256;
+        } else {
+            $this->entropy = $entropy;
+        }
     }
 
     /**
@@ -58,7 +46,7 @@ class UriSafeTokenGenerator implements TokenGeneratorInterface
         // Generate an URI safe base64 encoded string that does not contain "+",
         // "/" or "=" which need to be URL encoded and make URLs unnecessarily
         // longer.
-        $bytes = $this->random->nextBytes($this->entropy / 8);
+        $bytes = random_bytes($this->entropy / 8);
 
         return rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=');
     }
